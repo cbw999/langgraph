@@ -16,6 +16,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@langchain/langgraph-sdk": "file:",
     "@types/json-schema": "^7.0.15",
     "p-queue": "^6.6.2",
     "p-retry": "4",

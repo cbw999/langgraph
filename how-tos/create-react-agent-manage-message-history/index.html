@@ -1,0 +1,1640 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Build reliable, stateful AI systems, without giving up control">
+      
+      
+      
+        <link rel="canonical" href="https://langchain-ai.github.io/langgraph/how-tos/create-react-agent-manage-message-history/">
+      
+      
+      
+      
+      <link rel="icon" href="../../static/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+  
+    <title>How to manage conversation history in a ReAct Agent</title>
+  
+
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Public+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Public Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/navigation_title_ovverides.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/version_admonitions.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/logos.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/sticky_navigation.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/agent_graph_widget.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-G8X6ELZYE0"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-G8X6ELZYE0",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-G8X6ELZYE0",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+    
+  <meta name="algolia-site-verification" content="165B7E7C89E49946" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Public+Sans&display=swap");
+    :root {
+      --md-primary-fg-color: #333333;
+      --md-accent-fg-color: #1E88E5;
+      --md-default-bg-color: #FFFFFF;
+      --md-default-fg-color: #333333;
+      --md-text-font-family: "Public Sans", sans-serif;
+    }
+
+    body {
+      font-family: var(--md-text-font-family);
+      background-color: var(--md-default-bg-color);
+      color: var(--md-default-fg-color);
+    }
+
+    .md-main {
+      background-color: #FFFFFF;
+    }
+
+    .md-footer {
+      background-color: #F5F5F5;
+      color: #666666;
+    }
+
+    .md-footer-meta {
+      background-color: #4d4d4d;
+    }
+
+    .md-typeset a {
+      color: #1E88E5;
+    }
+
+    .md-typeset a:hover {
+      color: #1565C0;
+    }
+
+    .md-nav__link--active,
+    .md-nav__link:active {
+      color: #1E88E5;
+    }
+
+    .md-search__input {
+      background-color: #F5F5F5;
+      color: #333333;
+    }
+
+    .md-search__input:hover,
+    .md-search__input:focus {
+      background-color: #EEEEEE;
+    }
+    /* Table of contents styles */
+    .md-nav--secondary .md-nav__item--active > .md-nav__link {
+      font-weight: bold;
+      color: var(--md-primary-fg-color);
+    }
+
+    .md-nav--secondary .md-nav__item--nested > .md-nav__link {
+      font-weight: normal;
+      color: var(--md-default-fg-color);
+    }
+
+    .md-nav--secondary .md-nav__item--nested > .md-nav__link::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: var(--md-default-fg-color);
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    [data-md-color-scheme="slate"] {
+      --md-default-bg-color: #1E1E1E;
+      --md-default-fg-color: #FFFFFF;
+      --md-accent-fg-color: #64B5F6;
+    }
+
+    [data-md-color-scheme="slate"] .md-main {
+      background-color: #1E1E1E;
+    }
+
+    [data-md-color-scheme="slate"] .navbar {
+      background-color: #1E1E1E;
+      color: #FFFFFF;
+      box-shadow: none;
+    }
+
+    [data-md-color-scheme="slate"] .md-footer {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-header {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-tabs {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__input {
+      background-color: #F5F5F5;
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__icon {
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__input::placeholder {
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-footer-meta {
+      background-color: #4d4d4d;
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset a {
+      color: #64B5F6;
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset a:hover {
+      color: #90CAF9;
+    }
+
+    .notebook-links {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+    .notebook-links .md-content__button {
+      margin-left: 0.5rem;
+    }
+
+    [data-md-color-scheme=default] .logo-dark {
+      display: none !important;
+    }
+
+    [data-md-color-scheme=slate] .logo-light {
+      display: none !important;
+    }
+
+    .jupyter-wrapper .jp-CodeCell .jp-Cell-inputWrapper .jp-InputPrompt.jp-InputArea-prompt {
+      display: none !important;
+    }
+
+    .jupyter-wrapper .jp-Notebook .jp-Cell .jp-OutputPrompt {
+      display: none !important;
+    }
+
+    .md-banner {
+      background-color: #CFC9FA;
+      color: #000000;
+    }
+
+    .md-banner a {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .md-banner a:hover {
+      color: #000000;
+    }
+
+    .md-header__title {
+      visibility: hidden;
+    }
+
+    /* Dark mode banner links */
+    [data-md-color-scheme="slate"] .md-banner a {
+      color: #000000;
+    }
+
+    [data-md-color-scheme="slate"] .md-banner a:hover {
+      color: #000000;
+    }
+
+  </style>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-manage-conversation-history-in-a-react-agent" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<strong>We are growing and hiring for multiple roles for LangChain, LangGraph and LangSmith. <a href="https://www.langchain.com/careers" target="_blank" rel="noopener noreferrer"> Join our team!</a></strong>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="LangGraph" class="md-header__button md-logo" aria-label="LangGraph" data-md-component="logo">
+      
+  <img src="../../static/wordmark_dark.svg" alt="logo" class="logo-light" />
+  <img src="../../static/wordmark_light.svg" alt="logo" class="logo-dark" />
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LangGraph
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How to manage conversation history in a ReAct Agent
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="gray"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent="white"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/langchain-ai/langgraph" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/rag/langgraph_agentic_rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/faq/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Resources
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="LangGraph" class="md-nav__button md-logo" aria-label="LangGraph" data-md-component="logo">
+      
+  <img src="../../static/wordmark_dark.svg" alt="logo" class="logo-light" />
+  <img src="../../static/wordmark_light.svg" alt="logo" class="logo-dark" />
+
+    </a>
+    LangGraph
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/langchain-ai/langgraph" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../.." class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../reference/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../tutorials/rag/langgraph_agentic_rag/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../concepts/faq/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keep-the-original-message-history-unmodified" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keep the original message history unmodified
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overwrite-the-original-message-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overwrite the original message history
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summarizing-message-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summarizing message history
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+<div class="notebook-links">
+  
+</div>
+
+
+                  
+
+
+  
+    <a href="https://github.com/langchain-ai/langgraph/edit/main/docs/docs/how-tos/create-react-agent-manage-message-history.ipynb" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="how-to-manage-conversation-history-in-a-react-agent">How to manage conversation history in a ReAct Agent<a class="headerlink" href="#how-to-manage-conversation-history-in-a-react-agent" title="Permanent link">&para;</a></h1>
+<div class="admonition info">
+<p class="admonition-title">Prerequisites</p>
+<p>This guide assumes familiarity with the following:</p>
+<ul>
+<li><a href="../create-react-agent">Prebuilt create_react_agent</a></li>
+<li><a href="../../concepts/persistence">Persistence</a></li>
+<li><a href="../../concepts/memory/#short-term-memory">Short-term Memory</a></li>
+<li><a href="https://python.langchain.com/docs/how_to/trim_messages/">Trimming Messages</a></li>
+</ul>
+</div>
+<p>Message history can grow quickly and exceed LLM context window size, whether you're building chatbots with many conversation turns or agentic systems with numerous tool calls. There are several strategies for managing the message history:</p>
+<ul>
+<li><a href="#keep-the-original-message-history-unmodified">message trimming</a> — remove first or last N messages in the history</li>
+<li><a href="#summarizing-message-history">summarization</a> — summarize earlier messages in the history and replace them with a summary</li>
+<li>custom strategies (e.g., message filtering, etc.)</li>
+</ul>
+<p>To manage message history in <code>create_react_agent</code>, you need to define a <code>pre_model_hook</code> function or <a href="https://python.langchain.com/docs/concepts/runnables/">runnable</a> that takes graph state an returns a state update:</p>
+<ul>
+<li>
+<p>Trimming example:
+    <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span></span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="hll">    <span class="n">trim_messages</span><span class="p">,</span> 
+</span></span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="hll">    <span class="n">count_tokens_approximately</span>
+</span></span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="hll"><span class="p">)</span>
+</span></span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_react_agent</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># This function will be called every time before the node that calls LLM</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">pre_model_hook</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">trimmed_messages</span> <span class="o">=</span> <span class="n">trim_messages</span><span class="p">(</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">],</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">,</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">token_counter</span><span class="o">=</span><span class="n">count_tokens_approximately</span><span class="p">,</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="n">max_tokens</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="n">start_on</span><span class="o">=</span><span class="s2">&quot;human&quot;</span><span class="p">,</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="n">end_on</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;human&quot;</span><span class="p">,</span> <span class="s2">&quot;tool&quot;</span><span class="p">),</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="p">)</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="c1"># You can return updated messages either under `llm_input_messages` or </span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="c1"># `messages` key (see the note below)</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="hll">    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;llm_input_messages&quot;</span><span class="p">:</span> <span class="n">trimmed_messages</span><span class="p">}</span>
+</span></span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="n">checkpointer</span> <span class="o">=</span> <span class="n">InMemorySaver</span><span class="p">()</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_react_agent</span><span class="p">(</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">model</span><span class="p">,</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">tools</span><span class="p">,</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="hll">    <span class="n">pre_model_hook</span><span class="o">=</span><span class="n">pre_model_hook</span><span class="p">,</span>
+</span></span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">checkpointer</span><span class="o">=</span><span class="n">checkpointer</span><span class="p">,</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">)</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Summarization example:
+    <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">langmem.short_term</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummarizationNode</span>
+</span></span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_tokens_approximately</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt.chat_agent_executor</span><span class="w"> </span><span class="kn">import</span> <span class="n">AgentState</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.checkpoint.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">InMemorySaver</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">summarization_node</span> <span class="o">=</span> <span class="n">SummarizationNode</span><span class="p">(</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">token_counter</span><span class="o">=</span><span class="n">count_tokens_approximately</span><span class="p">,</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">max_summary_tokens</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">output_messages_key</span><span class="o">=</span><span class="s2">&quot;llm_input_messages&quot;</span><span class="p">,</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">)</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">(</span><span class="n">AgentState</span><span class="p">):</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="c1"># NOTE: we&#39;re adding this key to keep track of previous summary information</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="c1"># to make sure we&#39;re not summarizing on every LLM call</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="hll">    <span class="n">context</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</span></span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">checkpointer</span> <span class="o">=</span> <span class="n">InMemorySaver</span><span class="p">()</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">graph</span> <span class="o">=</span> <span class="n">create_react_agent</span><span class="p">(</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="n">model</span><span class="p">,</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    <span class="n">tools</span><span class="p">,</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="hll">    <span class="n">pre_model_hook</span><span class="o">=</span><span class="n">summarization_node</span><span class="p">,</span>
+</span></span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="hll">    <span class="n">state_schema</span><span class="o">=</span><span class="n">State</span><span class="p">,</span>
+</span></span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="n">checkpointer</span><span class="o">=</span><span class="n">checkpointer</span><span class="p">,</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="p">)</span>
+</span></code></pre></div></p>
+</li>
+</ul>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<ul>
+<li>To <strong>keep the original message history unmodified</strong> in the graph state and pass the updated history <strong>only as the input to the LLM</strong>, return updated messages under <code>llm_input_messages</code> key</li>
+<li>To <strong>overwrite the original message history</strong> in the graph state with the updated history, return updated messages under <code>messages</code> key</li>
+</ul>
+<p>To overwrite the <code>messages</code> key, you need to do the following:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">RemoveMessage</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph.message</span><span class="w"> </span><span class="kn">import</span> <span class="n">REMOVE_ALL_MESSAGES</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">pre_model_hook</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">updated_messages</span> <span class="o">=</span> <span class="o">...</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">RemoveMessage</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">REMOVE_ALL_MESSAGES</span><span class="p">),</span> <span class="o">*</span><span class="n">updated_messages</span><span class="p">]</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="o">...</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="p">}</span>
+</span></code></pre></div>
+</div>
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<p>First, let's install the required packages and set our API keys</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>langgraph<span class="w"> </span>langchain-openai<span class="w"> </span>langmem
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">_set_env</span><span class="p">(</span><span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">: &quot;</span><span class="p">)</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="n">_set_env</span><span class="p">(</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition tip">
+    <p class="admonition-title">Set up <a href="https://smith.langchain.com">LangSmith</a> for LangGraph development</p>
+    <p style="padding-top: 5px;">
+        Sign up for LangSmith to quickly spot issues and improve the performance of your LangGraph projects. LangSmith lets you use trace data to debug, test, and monitor your LLM apps built with LangGraph — read more about how to get started <a href="https://docs.smith.langchain.com">here</a>. 
+    </p>
+</div>
+
+<h2 id="keep-the-original-message-history-unmodified">Keep the original message history unmodified<a class="headerlink" href="#keep-the-original-message-history-unmodified" title="Permanent link">&para;</a></h2>
+<p>Let's build a ReAct agent with a step that manages the conversation history: when the length of the history exceeds a specified number of tokens, we will call <a href="https://python.langchain.com/api_reference/core/messages/langchain_core.messages.utils.trim_messages.html"><code>trim_messages</code></a> utility that that will reduce the history while satisfying LLM provider constraints.</p>
+<p>There are two ways that the updated message history can be applied inside ReAct agent:</p>
+<ul>
+<li><a href="#keep-the-original-message-history-unmodified"><strong>Keep the original message history unmodified</strong></a> in the graph state and pass the updated history <strong>only as the input to the LLM</strong></li>
+<li><a href="#overwrite-the-original-message-history"><strong>Overwrite the original message history</strong></a> in the graph state with the updated history</li>
+</ul>
+<p>Let's start by implementing the first one. We'll need to first define model and tools for our agent:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatOpenAI</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Use this to get weather information.&quot;&quot;&quot;</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">city</span> <span class="ow">in</span> <span class="n">location</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">city</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;nyc&quot;</span><span class="p">,</span> <span class="s2">&quot;new york city&quot;</span><span class="p">]]):</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        <span class="k">return</span> <span class="s2">&quot;It might be cloudy in nyc, with a chance of rain and temperatures up to 80 degrees.&quot;</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="k">elif</span> <span class="nb">any</span><span class="p">([</span><span class="n">city</span> <span class="ow">in</span> <span class="n">location</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">city</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;sf&quot;</span><span class="p">,</span> <span class="s2">&quot;san francisco&quot;</span><span class="p">]]):</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="k">return</span> <span class="s2">&quot;It&#39;s always sunny in sf&quot;</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;I am not sure what the weather is in </span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="n">tools</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_weather</span><span class="p">]</span>
+</span></code></pre></div>
+<p>Now let's implement <code>pre_model_hook</code> — a function that will be added as a new node and called every time <strong>before</strong> the node that calls the LLM (the <code>agent</code> node).</p>
+<p>Our implementation will wrap the <code>trim_messages</code> call and return the trimmed messages under <code>llm_input_messages</code>. This will <strong>keep the original message history unmodified</strong> in the graph state and pass the updated history <strong>only as the input to the LLM</strong></p>
+<p><sup><i>API Reference: <a href="https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.chat_agent_executor.create_react_agent">create_react_agent</a> | <a href="https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.memory.InMemorySaver">InMemorySaver</a> | <a href="https://python.langchain.com/api_reference/core/messages/langchain_core.messages.utils.trim_messages.html">trim_messages</a> | <a href="https://python.langchain.com/api_reference/core/messages/langchain_core.messages.utils.count_tokens_approximately.html">count_tokens_approximately</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_react_agent</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.checkpoint.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">InMemorySaver</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span></span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="hll">    <span class="n">trim_messages</span><span class="p">,</span>
+</span></span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="hll">    <span class="n">count_tokens_approximately</span><span class="p">,</span>
+</span></span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="hll"><span class="p">)</span>
+</span></span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># This function will be added as a new node in ReAct agent graph</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># that will run every time before the node that calls the LLM.</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1"># The messages returned by this function will be the input to the LLM.</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">pre_model_hook</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="n">trimmed_messages</span> <span class="o">=</span> <span class="n">trim_messages</span><span class="p">(</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">],</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>        <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">,</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>        <span class="n">token_counter</span><span class="o">=</span><span class="n">count_tokens_approximately</span><span class="p">,</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="n">max_tokens</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>        <span class="n">start_on</span><span class="o">=</span><span class="s2">&quot;human&quot;</span><span class="p">,</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>        <span class="n">end_on</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;human&quot;</span><span class="p">,</span> <span class="s2">&quot;tool&quot;</span><span class="p">),</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="p">)</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="hll">    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;llm_input_messages&quot;</span><span class="p">:</span> <span class="n">trimmed_messages</span><span class="p">}</span>
+</span></span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="n">checkpointer</span> <span class="o">=</span> <span class="n">InMemorySaver</span><span class="p">()</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="n">graph</span> <span class="o">=</span> <span class="n">create_react_agent</span><span class="p">(</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>    <span class="n">model</span><span class="p">,</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>    <span class="n">tools</span><span class="p">,</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="hll">    <span class="n">pre_model_hook</span><span class="o">=</span><span class="n">pre_model_hook</span><span class="p">,</span>
+</span></span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>    <span class="n">checkpointer</span><span class="o">=</span><span class="n">checkpointer</span><span class="p">,</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Image</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">get_graph</span><span class="p">()</span><span class="o">.</span><span class="n">draw_mermaid_png</span><span class="p">()))</span>
+</span></code></pre></div>
+<p>
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANgAAAFcCAIAAAAlFOfAAAAAAXNSR0IArs4c6QAAIABJREFUeJztnXdcU9ffx8/NXhBGWAEiU7YLJ7YuFNw4cVd/aod7z1arVVtrtVqsVqtVa91WxWptxVVRXFXrQBEQGbJ3IHs+f8QnUgsIkpNzE8775R/JvTfnfBI+nn2+h9Dr9QCDQQ0FtQAMBmAjYsgCNiKGFGAjYkgBNiKGFGAjYkgBDbUA06OUa8vyVbJqraxao9HoNSoLGJ9isik0BsGxoXFsqS6eLNRyEGA9RpRWqdPvS18kS6rK1DYOdI4NlWNDs3WgA0sYKNVpQVGWUlYtpTMpOc9k3qFcnzCuTxgPtS7zQVjBgLZOq79xpqw0X+koZPiE8tz92KgVNQmFTJuZLM1Nl+W/UEQMdPRva4NakTmweCM+uSX+63hJxCDHtj3sUWsxMVVl6htny5QybdQEVzaPiloOXCzbiH8dL2ZxKJ0HCFALgUhpgTJ+W17fia4e/hzUWiBiwUa8cKDI1ZsV1pWPWog5OLUt7/2hAoGQiVoILCzViPHb8/za8EIjmoULDZzalhvW1c6vjXX2YCxyHPFafIlXMLdZuRAAMHSGx60/yiqKVKiFQMHyjJh6v5pGp7TpYYdaCALGLRVdOV5soZVY/VieEa8eL2nXqzm6EABAEIRXMPfGmTLUQkyPhRnx3sWK0K62TLaVj2XUQ7te9k9vVymkWtRCTIwlGVGv1+ekyiIGWvNgTUPoNszpwdVK1CpMjCUZ8cVjKZNtSYIhIQrgJN8Qo1ZhYizp75qZLPUO5Zo50yVLlpw5c+YdPti7d+/8/HwIigCbR7UTMAqy5DASR4UlGbGyRO0TZm4jpqSkvMOnCgsLKysh1p4t2/NepsngpW9+LMaICqm2olgFr5sSHx8fGxvbtWvXyMjIRYsWFRUVAQDat2+fn5+/evXqHj16AAC0Wu2OHTuGDBkSERHRr1+/9evXy+WviqXevXsfOnRo9uzZXbp0uXbt2sCBAwEAgwcPXrBgAQy1XFtaaa51DSjqLYTSfMXB9dmQEr9//354ePjJkydfvnz5+PHjqVOnTpo0Sa/XFxUVhYeHHzlypLKyUq/X79+/v1OnTufPn8/Ozr5582bfvn2/+eYbQwrR0dHDhw//7rvvHj58KJfLExISwsPDU1JSJBIJDMEFmfJjm3NgpIwKi1mPKK3Scm1hFYcZGRlMJnPQoEE0Gs3Dw2P9+vUFBQUAAD6fDwDgcDiGF/369evSpYufnx8AQCQSRUVFJSUlGVIgCILFYs2ePdvwlsvlAgBsbW0NL0wOl0+Viq1qBMdijKjX6RnQuszt27cnCGLq1KkxMTGdOnUSCoWOjo7/fczOzu73339fu3ZtcXGxRqORyWQczusVMa1atYIk779QaQSDZTHNqoZgMV+GY0sTl6ghJe7l5bV3714PD4+tW7cOHjx40qRJycnJ/33sm2++2b17d2xs7K5duw4dOjR06NCad3k88y1HkFRqqDTCbNmZAYsxIteWKq2CWBn5+/uvXbv2woULO3fupFKpc+fOVan+1RvQarWnT5+eOHFi//793d3dBQKBRCKBp6d+oDZUkGAxRuTY0Bxc6TodlPn+5OTkR48eAQCoVGp4ePi0adMqKyvLyl5N6RoWGeh0Oq1Wa2gsAgCkUmliYmL96w/grU5QyrROnla1NtFijAgAYHGoLx5LYaR848aN+fPnX7p0KTc3NzU19ciRI25ubq6urkwmk8lk3r9/PzU1lSCIgICAs2fP5ubmpqenz507t2vXrlVVVVlZWRqN5o0EbW1tAQDXr19/8eIFDMGp96rdvCx7a84bWJIRvUK4WU+gGHHy5MlDhw7dsmXLiBEjZsyYodfr4+LiCIIAAEyaNOnixYvTp0+Xy+UrV67UarWxsbHLli0bPXr0jBkzXF1dP/jgg+Li4jcSDAoKioiI2Lx584YNG0yuVqvR5z2XiwKtaueAJa3Qlks0CQeKYj5xRy0EMZlPJC/T5N2GOqEWYkosqURk82j2LoyHVrfwpLHc+K3M+lanW8w4ooGugwQ7l2a07l77wlitVhsZGVnrLZVKxWAwar3l7e29d+9ek8p8zb59+/bt21frLR6PV1e/Oygo6Icffqj11rO7Vc6eLAeX2r+L5WJJVbOBB1crCULfulvtu5irq6trva5UKhkMhqHZ9wYUCgXS/Ich3zeGgYyo1Wo6nV7rLSqVWnOovCZnd+d3H+FkY1f7By0XyzOi4Y8R0plv/iVhyLHiL25JbUQjA6cKE0+WlBUqUQsxK5ePFrt6sazShZZaIhqmno9uetltmJPQ16qG0+riyrFiD3+2FcfBscgSEQBAUIjRi0Q3z5Wl3KlCrQUuOq3+1LY8B1eGFbvQgktEIzfOluakyCIGCaxsgNfA3wnlqXere4x0su7AN9ZgRABASZ7yxplSri1N6Mv2DuWyuRa/GqD4pSInVXY3oaJND7uOfR0oFKtaaFMr1mBEA7npstS71ZnJUidPJl9A59rSuLY0ji1Vp0OtrAFQCSAuV0vFWj3QP/u7mmtL82vNbdXNjs6w1LZTY7EeIxopyJSX5qmkVRpplYZCEDKJKRePyWSy7OzsoKAgE6YJALCxp+v1ei6fauNA9/Blc/kWNtHQdKzQiFBJSUlZt27dgQMHUAuxNppLyY8hOdiIGFKAjdg4CIIQiUSoVVgh2IiNQ6/X5+TkoFZhhWAjNhpz7tZrPmAjNhqEm/esGGzExkEQhEDQ3AM0wgAbsXHo9frS0lLUKqwQbMTGQaFQvL29UauwQrARG4dOp8vMzEStwgrBRsSQAmzExkEQhDHqCMaEYCM2Dr1eLxZbWyB1MoCN2Gjs7JrpcUNQwUZsNFCjtDdbsBExpAAbsXEQBOHu3tyjQMEAG7Fx6PX6vLw81CqsEGxEDCnARmwcBEG0aNECtQorBBuxcej1+uzsbNQqrBBsRAwpwEZsHHj1DSSwERsHXn0DCWxEDCnARmwceDspJLARGwfeTgoJbEQMKcBGbDR4XzMMsBEbDd7XDANsxMZBoVA8PDxQq7BCsBEbh06ny83NRa3CCsFGxJACbMTGQRCEg4MDahVWCDZi49Dr9eXl5ahVWCHYiI2DQqF4eXmhVmGFYCM2Dp1Ol5WVhVqFFYKN2DhwiQgJbMTGgUtESGAjNg4KheLs7IxahRWCD/xpEGPGjJFIJARBqFQqiURib29PEIRSqTx//jxqaVYCLhEbRL9+/YqLi/Pz80tLSxUKRUFBQX5+vo2NNZ9ba2awERvE6NGjPT09a14hCKJ79+7oFFkb2IgNgsFgDBkyhEp9fQCvSCQaMWIEUlFWBTZiQ4mNjTVGvSEIomfPnm5ubqhFWQ/YiA2FwWAMHz7cUCiKRKKRI0eiVmRVYCM2gtjYWKFQaCgOXVxcUMuxKuAeUC2r1pQVqNQq6xkhiunz0V9//fVeu+EvkqWotZgGAgAun+rgwqAxUJZKsMYR5VLt5SPFBZkKUSBXITXlGfIY00JjEOJStUalaxlu06kvshVuUIwoq9ac+j4/YoizQMgyeeIYSNy7UEqhgm5D0RzwBqU0Prg+J2qSO3ahZRHeR6DXEzfOliHJ3fRG/OdyRdj79iwOtQHPYshFu0jH/BdySZXG/Fmb3ogF2Qoun27yZDHmgUIhygtUCPI1eYpatd7WHhvRUnFwZVWVq82fr+mNKKvW6qxnuKbZoVbqgA5BvnhAG0MKsBExpAAbEUMKsBExpAAbEUMKsBExpAAbEUMKsBExpAAbEUMKsBExpAAbEUMKsBHfhe/ivv7flNj6n3nx4nnPyPaPHz+o/7G1X342a84UE2qLGRq5/5fdJkzQPGAjYkgBNiKGFMDdxdcQ0tKfffzJ+DWrN544eTj9+TMqldY3etDHH82mUCin4o/t/2XXwvmfbfx2bVSfAdM+mavRaA4c/OnylYSiogInJ5eRI8bFDH5LuIXs7MxJk0du+Pr7w4f3paWncLm8D6fOEgo9tm7dkPMyy83NfcH8z4ICQwAAKpXqpz3br/yVUFFR7ugo6B3Zb9LEj2k0GgCgtLTkm01rHjy4y+XyBg8aXjP9ysqK7Ts2P3x4Tyyu9PHx/3DqzLZt2jfqF6BSqdeuX/lx19bCwnxPzxaLF30eGBBcv556btXkwYN7i5bMWLvm204dIxolyfygNyKNSgMA7NwVt2zpF4EBwbduXV+5apFI5DWg/xA6na5QyE+eOrJk8SqRyAsAsGPnd7+fOzV39tKQ0Nb37t3+fttGGo02oP+QetKn0mgAgD17f1i2ZLW7u+f6rz/fvOXLkOBWa77YZGvLX7ps9tbvv9n+/T4AwJbv1l9P+mvunKUBAcFPnz7e8t1XSqVyxvT5AICv1q/Mzcv56svvHB0E8aePJV67bGvLN4RLXLJ0lkQqWbJ4laOD4PRvx5cum/3Dtv0+Pn4N/wWKiwrPnDmxeOFKAMCWuPVfrV/5895f69dTzy0jubk5K1ctGj3qA/K7kERVc5/e/YODQikUSkREt7Zt2p9POGuI7KFQKEYMH9u5U1ehm7tEIjn92/FRsROiowd6uHvGDB4RHTXw0OF9DUm/Z48+IpEXlUrt0b2PTCbr33+IQODEYDC6dYvMyEgDAIjFlQkXfv9gwtRePaPchR59evcbNnT02d9PqtXqkpLi+//8PWb0pHZtO7Ro4T171mIOh2tI9u6922npzxYu+Mxwa+aMhS4ubidPHWnUdy+vKPt0+dqwsDZhYW2GDR2dk5MlkUjq0VPPLWOaYnHl0uVzunR5f8rk6Y38U6CBLEZs6R9ofN2ihU9+/utDdYKDwwwvMjLSNBpN+/DOxlutW4fn5+fKZLK3pi/yfBVvmMPl1nzL5XBVKpVKpcp4ka7VaoODwowfCQgIVigUubk52TmZAIDAwBDDdYIgjK9TUpLpdHqb1uGGtxQKpVVY2+fPUxv13T09WvD5dobX9nYOAAC5XFaPnnpuGd5qtZqVqxY5O7ksWrCiUUoQgr5qNsBmc2q8Zksk1ca3XO6rQxhlMikAYN6CjwmCMFwxbMouryjjcDj/SfJf0Oj/2kbDYDJrvtXr9YbEjUWdUZJcLpPLZQAAJuP1Rzj/r1Ymk6rV6uh+r+s+rVbr4ODYqO/OYrONrw1frX499dwyvD1x8rBMJvPy8tFqtf9tOJITsqg0/ogAAKlMyuPVEgPT4MhPl6/18f5XC8zZyQRhaAyJG/7GBgyvuVyeVCYFAEilr8+CNP4/4XJ5DAZj185DNZOiUExQz9SjR6lS1nXL8FYk8p43d9m8+R/9uHvrrBkLmy7GDJClan7w8J7xdWrqU2PVWRMfH386nV5RUS4SeRn+2dry+Xw7BoPRdAE+Pv5UKjX5yUPjlSdPHvF4PHd3T0+PFgCA5xlphusajcaoNjAwRKVSabVaoyQGgykQmCDIdj166rlleNu503v+fgGzZiw6efLI33dvNV2MGSBLiXjjZqK/f2BQUGhS0l9Pnz5evvSL/z7D4/EGDhy27+edfL5dYGBIUVHBtu2bnJxcvlq3pekC+Lb8fn0HHzy0V+jm4e8f+ODBXUPHiEajubq6BQeHHTq8193d087O/sSJw/T/r+jD23X09wv48qsVM6YvcHF1e/LkUVzc1+PGTR4VOwGennpu1UwhOnrgzVvXvt6w6ue9J7hcbt1ZkQKyGHHy/6adTzi7cdMaBoM5+X/T+vTpX+tj0z+ZZ8Oz+XFXXFlZqYODY0SXblMmzzCVBkN3eEvc+srKCmcnl/HjpowdM8lw67NP123cuObTz+YZxhH79O6feO2yYQjw6/Vbf9i55fPVixUKuaurcMKEqSNHjIOtp55bNZk3d9mUD0efij86ftxkk0iCh+mDMB3d9LJjf2eBkNmAZ4FhTnbKh6PjtuwOC2tjWiWYd+DW2RI3L0ZoV76Z8yVLGxHTzCFL1dwUDh3ed/hI7cPaIpH3tq17za7oXwyK6VHXraWLV3ftio8mAKSomptOtaS65rhjTeg0ukDgZDYltVJQmF/XLXs7BxaLXMH7UFXN1lAi2vBsbGobdyQJbq5C1BIsANxGxJACbEQMKcBGxJACbEQMKcBGxJACbEQMKcBGxJACbEQMKcBGxJAC0xvR3pkO4JzvhzEDDDaFzkJQPJk+SwaLUpqvNHmyGPOQmy51dDXBivfGYnojtgjmVBRhI1okCpmWzaUK3M23YMWI6Y3oHcJjsoi7CaUmTxkDm4sH8t8bguZ0UljnNV8/XSqX6JxEbIE7i0YjYGSBMRF6SaWmqkx154/SUQs87V0Q1MsQjQgAyHgsyXggUcr1ZQWmrKl1Op1er9f9P3q9Xq/Xk39zUF0oFAq0SxKZbAqdSRH6sDpEOdCZyEZRIBoRBjExMQqFQqlUSiQSw0Z0giCEQuG6devCwsIakADpkMvl3bt3T0xMJNsKWTNjYeOIeXl5ZWVlBhca4yKEh4dbqAsNYS1u3rwZGRlZVobmxG6SYGFGvHv37htxFDw8PD788EN0ikwAlUpNSkoaM2ZMbm5uAx63TizMiACAJUuWGF/TaLTIyEih0BrW4ickJGzatOnZs2eohaDBkoyoVCpnzpyZmprq5PRqP5Sbm9vUqVNR6zIZmzdvXrNmzYMHbwm7bZVYzOap8+fPnz59esKECV26dAEAdOnShU6njxkzhl0jlJYVcPDgwTVr1shksogIC4iuaUIso9e8YcOGysrKL7/8subF4cOHnzhxAp0oiMyaNeujjz6y3B7Yu6AnN8nJyd26dbt8+TJqIeZm3rx5ycnJqFWYD1KXiMeOHTt79uz27dt5PB5qLQhYvHhxdHR0ZGQkaiHmgLydlfnz56tUqv379zdPFxoaJPfu3bt69SpqIeaAjEYsLCzs06dPTEzM+PHjUWtBzOLFi0+cOJGUlIRaCHRI12v+559/fvnll6NHjzo4OKDWQgri4uKmTJnC5XLbtLHmsH3kaiOeO3fu5MmTu3db3lFysFm0aNG0adN8fHxQC4EFiYx47969+Pj4NWvWoBZCUnr06HHmzBkbG/KGm2oKZDHizz//nJGR8cUXtYTOxhhQKBSRkZHW2l4kRWdlz549EokEu7B+WCzWL7/8MmFCU8PEkxP0Rty3b59UKp0xw2Qx2a0YHx+f8ePHL1++HLUQ04PYiKdOnaqoqJg1axZaGRZEdHS0t7f3/v37UQsxMSiN+Pfff58/f37evHkINVgiH374YVJS0t27d1ELMSXIOivFxcUTJ078448/kORuBbRv396avIisRFyxYkV8fDyq3K2AXbt2LVu2DLUKk4HGiIsXL46NjWUyEWzkthratm3L5/OPHz+OWohpQGDEc+fOMZnMZrKoBCpLly6Ni4tryHHV5MfcbUSpVNqvX7/ExERzZmrFJCUlJSYmWkEdbe4SccuWLXFxcWbO1Irp2rVramrq48ePUQtpKmY14o0bNwoLC617FYn5mT59+vbt21GraCpmNeJ33303Z84cc+bYHOjYsaNQKLT0vX/mM+Iff/zh7+/v5+dnthybDx07djx27BhqFU3CfEY8fPjw3LlzzZZdsyI6OvratWsW3X02kxEvXrzo5uYmEKCJvdccGD9+fEJCAmoV746ZjBgfHz9kyBDz5NU8ad269YULF1CreHfMYcTi4uKMjAxDhAYMJDp37pydna1Wq1ELeUfMYcTTp0/HxMSYIaNmjkgkun//PmoV74g5jPjs2bOhQ4eaIaNmTkhIyJMnT1CreEegGzErKysrK8vFxQV2RpjWrVtbbrRP6Ea8fft2p06dYOeCAQC4urpa7gpF6Ea8detW586dYeeCMbQR7ezsUKt4R7ARrQcGg5GSkiKVSlELeRfgGvHBgwfR0dEMBpqjO5ohHTp0qKqqQq3iXYBrxJSUlGYbywsJL1++tNCJPrhGTE9P9/f3h5oFpiYBAQEajQa1incBbjSwtLS0kSNHQs0CAwAYMWIEjUZjMBhZWVnJyclMJpPBYNBotD179qCW1lDgGhGXiOZBJpMVFxcbXxsiUo8ZMwa1rkYAsWrOzMz09PSk0UgXgtH6aN++vVarrXnF3d3dssKcQjRiTk4OLg7Nw8SJE93d3Wte6d69u6urKzpFjQaiEQsKCnDUV/Pg6+sbHh5ufOvm5jZu3DikihoNXCO6ubnBSx9Tkw8++MAwoa/X63v16mVZxSFcIxYWFlrcz2G5+Pr6tm/fXq/XC4XCsWPHopbTaCD2JIqKivCim1qRVml02gY810hih028fyelV7deHIZjdYWJRxP1er2tA920adYEohE5HI51nBtqQpJ+K3n2t8TBjSEugbGUmjK88wYgAyfiTH/crp0TIy9D5hPKbd/HwcnD9EGLIBrx/v37tra28NK3LLRa/fHNuYEd+YM+sWfzLHJIS6fTi0tV5w8U9hrlIvRmmTZxWG1EhUJBpVLpdIiFuWVx/NvcdpEOvq1tLdSFAAAKhbB3ZsZMa/HX8eKCTLmJEzdtckaqqqpwcWjk8XVxi1Cemw8XtRDTEDlWePdChWnTxEY0B3kv5BwbSy0I/wvHhlaYpVBITdnhgmXE6upqaz2a5h3Q64C9s1VFJRUF8cqLVSZMEJYR5XJ5y5YtISVucYhLVSQ5WMlUVJWpCD1hwgRhGVEikVRUmLgZgbFiYBlRqVTiENmYhoONiCEF2IgYUoCNiCEFsAa3GAwGh8OBlDjG+oBVIlZWVsrlJp4FwlgxsIyo1WqpVCqkxDHWBzYihhTAMqJOp6NQ0J9KjrEUsBExpACWVzgcDu41YxoOxGVgKpUpV2dgIJGZmTF67EDUKqAZUa/XE4QpV2dgIJGWloJaAkB5gj2mfp6lPl24aHrM0Mh+A96bNv2Du/duG2+dOXty9NiB0f0i5s3/OCcnq2dk+yt/vTphJS392eIlM2OGRg4Y1G3FyoWFhQWG66d/+3XIsN4pKcnTZkwcOLj72HGDz/1xGgCw7+ed6zesKioq7BnZPinpKqLvCnCJSFKUSuWSpbPoDMbGb7b/sG1/cEirFSsXlJQUAwBSnj35dvOXERHdd+081K/v4DVrlwMADD91UVHh/AUfExTK5k07N23cUVUtXrBomqGBRKPRpFLJ/gO7V3++4czpv6KiBmze8lVJSfHoUROHDRvt7OwSf/Jix44RCL8yNiIZoVKpmzftXLp4lb9fgJeXz+RJ0xQKRfKThwCAhISz9vYOM6bNF4m8oqIGvP9+L+OnfjvzK0EQn326zsfHLzAgePnSNQUFeVcTLxnuajSasaMnOTu7EATRr2+MRqPJyEhjsVhMBpMgCD7fDu1ON1hzzVQqFRvxnaHRaGqNOm7rhucZaRJJtWF1d1WVGACQk5MVEtzKOFnw/ns99+7bYXidkpIcGBBiw3u1Q8PFxdXNzf3589Q+vfsZrvj4vIqJZWNjCwCollSj+HK1A8uIOp3OyhbHm5Pc3JwFCz9p26bD8mVrBI5OOp0udnR/w62qKrGjwMn4pK0t3/haKpWkP0+N6vv6qDm1Wl1WXmp8++Z6KDL9gaxna5k1cflKglar/ezTdQbrFBUVGm/RGQylQmF8W139OnQ7l8sLC2uzYN6nNZNisy1jNBcbkYyo1Somk2UswC5cPGe85eEhevTovrEJfu36FeOtoKDQ8wlnhUIPY3DUly+zHR0t42hiPHxDRoICQ8Xiyj/+/K2srDT+9PFnqU/s7OwzMtIkEkmPbr2Ligr37tuRX5B38dKfN24mGj81aOBwuVz29YZV6c9Tc3Nz9v+y+39TYp89e8vpfDyeTVlZ6aNH/1RUlMP/ZnWCjUhGIiK6jYqdsPPHuEmTRyQnP1i6eHXM4BHnE87u/un7iIhuk/837czZk1M/HH3p8p/z5y0HADAZTACAq6vbt5t2lpeXzZ4z5ZPpE+78fWPtmm+Dg8PqzyuyV1+h0GPBomn37t8x1/erBQJSl2Lt2rWhoaH4sHADRzbmdBnk4uBqgr0Ter2+vLzMWOE+evTPnHkf7tl91Nvbt+mJN5w/9+a+N1jg5mOyUEywSkQWi4XDuMPg4cP7I2L77v9ld25uTnLyw+0/fBsYGOLl5YNaV1OB5RW5XG6hJ8+QnDZtwpctWX30+C+HDu/l8WzatA7/+KM5VjBkC8uIBAGr0sdERQ2IihqAWoWJgVU1YyNiGgXuNWNIAS4RMaQAlhHt7OxwpAdMw4FlRLFYrKgxJYrB1A+umjGkAJYRKRSKTqeDlDjG+sC9ZgwpwFUzhhTAMqK9vT3uNWMaDqwpvurqahbLxKdkWS52TkzLnw3+F7YChmm/Ee6smAMKFZQXKlGrMCVZydUObgwTJoiNaA7c/VhSsfWsRaquUHm05DBYpjQPLCNSqVStFsKZxJZJSGd+UZY842FVA561AC78UtC5n4Np08S9ZjMxdKYw60n1szuVlcWWWkfLpZrCbNnxbzMHf+Tm6GbiniiszoqtrS2ummtCEMSQae53L5af2ZPq5OJQUWSOUGlanY5CoZikU+HgxqgsVnuHckbO9bCxN31MCFhGVCqVOJj7f9l1fNmcOXNa+rlrteaoLtatW9exY8c+ffo0PSm9HrA4EKc/IIYcwW3Emjx+/DgsLGzLli1sNhsAQAPmGM4ZERtTXV3NZFvA/BksI9JoNLxnxcjWrVuFQmFYWJjBhWajVatW5syuKeBeszkQCoXDhw83f75arfbAgQPmz/cdgGVEtDHOSEJOTs7q1asBAEhcaCgOTp8+/eLFCyS5NwqIbUSl0lLHKUzFxo0bv/32W7Qa1q9fb2tri1ZDQ4BVIjIYjOZsxNu3bwMA4uLikEcZ8PX1FQgsIA4TRCOq1WpIiZOcSZMmkacQys7O3rt3L2oVbwdiG7EZHm9RXV1dUFCwYMGCoKAg1Fpe4eTktGfPHtQq3g6sioPJZDY3I/7+++88Hq979+5ubm6otbyGw+H88MMPCoWC5KvyYJWIbDbb2dkZUuIkpKSk5Pbt2927d0eWE6S0AAAQk0lEQVQtpBZCQ0NJ7kKIRqTRaM+fP4eUONnIy8uj0WhffPEFaiG1c/r06d9++w21ircAMSxdc9jXLJPJ3n//fUdHR3t7e9Ra6oTH412/fh21ircAq43YHIyoUChu3rx5/vx5kld8Xbt2dXV1Ra3iLeAS8R3ZsWOHXC6PjIwk/yGsLBYrJCQEtYq3ALGz4ufnBylx5Ny8eZNKpZK5On6DSZMm5ebmolZRH7CqZg6Hc+fOHes7CE2pVGo0mhYtWnTp0qUBj5MFe3v7Fy9eeHh4oBZSJxAX9Pfo0ePMmTM2NjaQ0jc/paWlgwcPvn79OoViASv8LAuIPyiXy5VKpfDSNz+JiYk3btywRBfq9XqS79yA+JvyeDyJRAIvfXOyc+dOAMCwYcNQC3lHbt++PWvWLNQq6gOiEUNCQqxj28rhw4f5fH4DHiQvQqEwPz8ftYr6gLhISSwWl5WVwUvfbLRr1y4gIAC1iiYhEol+/fVX1CrqA2KJaGdnV1lZCS992BQVFY0aNQoAYOkuNGA84pmcQDQin88Xi8Xw0ofNjz/+ePToUdQqTMbMmTPT09NRq6gTiEYUCAQW2lm5cuUKAGDFihWohZgSBoNB5mYixDainZ1dSkoKvPQhcfDgQauM7Lho0SIyz4lDNKKTk1NJSQm89CHh6OjYt29f1CpMD6mW6/4XiFWzxRlx06ZNAACrdCEA4NKlS2Ru8mIjvmLmzJljx45FrQIiKpXq8ePHqFXUCcSqmcvlUqlUqVTK5XLh5dJ0iouLnZ2d169fz+PxUGuBSJcuXby8vFCrqBO406bOzs4FBQVQs2giKSkp27dvN0xIotYCFzs7O/LsLfwvcI3o6upaWFgINYsmcvz48VWrVqFWYQ6Ki4sNjWByAteIgYGBpJ1cSUxMBACsXLkStRDzcfHiRdQS6gRuQAwbGxtyjubHx8db2Yrdt+Lg4LBw4ULUKuoEbono6en58uVLqFm8GywWKyYmBrUKs0Kj0SIjI1GrqJNmZ0RDeC5rHSysn8WLF5M2aCVcI7Zo0YJUe3a+/PLLnj17olaBjFu3bpF2ayVcI1KpVBcXF/IUiqNGjWrbti1qFcjYunUraafRoW+/aNmyZVZWFuxc3srs2bMNwQJRC0FJ69atkcdrrAvoRhSJRMiD4GzcuHHt2rVoNZCB5cuXl5aWolZRO9CN6O/vj3AExzCKOX/+fPJEzkRIamoqaVeImqNqhp1FXZSXly9ZssRwQiUqDaRi2bJlpA1jbI4T8zp16pSUlGSG1klMTExhYaEhfrVGo/npp58+/vhj2JliTII5ioqoqCgz1M4JCQllZWVarTYiIuLOnTsKhQK78A3WrFlDnhGMNzCHETkczpMnT2DncuHCBcM2apVKNWPGDKtfTfMOPHv2jLSxN8xhxLZt2xYVFUHNoqCgIDU11Th9rNfre/ToATVHS2Tu3LlCoRC1itoxhxF9fX2vXbsGNYvExMTi4uKaVyQSCTkjWiOkQ4cOpB09MIcR/f39MzMzoZ4RefHixZrpu7q6enl5meR4WGti27ZtOTk5qFXUjpnG2YOCglJSUsLCwmAknpKSkp2dTaPRXF1dWSzW+++/37Zt23bt2pF59yQSCgoKqqurUauonbcM35TkKf+5XFmUo5BLmrRqQ6vTEQSgELAKYC1FwmAwXLzo0WO86Qw8avgvwsPDa0ZMNbx2c3M7e/Ysammvqa9EzHoqvXGmrFV3h+AIezaPpHOUBigUQlymqq5Q7f4sc9xSka0DPhv1NR4eHnl5eca3BEEwmcwpU6YgFfUmdZaIz/6uenqnus94d7NLaionv8sa/InQ3pmBWghZ2L17944dO2pe8fHxOXbsGDpFtVB7LaaQaZ/etkgXAgB6jxcm/UbSqX0kjBkzpmb0bAaDMXr0aKSKaqF2Ixa8UFBplrqlw9aRUZillFVD7KRbFlwud9CgQcawdJ6eniQMfVu7EavK1C4tyH58SD14hXDL8pvXkZT1M3r0aJFIZCgODUEfyUbtRlQqdBoVqWN/149UrNFqoC/msCC4XO7AgQMpFIpIJCJhcWi+cURMo6iuVMvEWlm1Vi7VqpWmKRFCPPp3aFnUuXPnh4mm2WlOZ1BoDIJjQ+XY0Bxcm9o1xEYkESV5yucPpM8fSmgMmkKmoTFoNKYp/0DvhU8CavD0nmkaLTQGVSlTaVVaoNfLq9WiQG5AONe31TuuNcFGJAUVxaq/fi1VKAgKnS7wFbBtSbrFqS60am1ViezGuaqrJ0s7RDmERTR6RhsbET2XjpZmJkud/ezdvEkdNq0eqHSqvdDGXmijUWkf3Si/m1DRf7Kri6gR/53wbBhKdDr9vi+yJTK6X4SHrbOlurAmNAbVPcRJGOp8bm/Rk1tVDf8gNiIy1Crt9oUZrkHOfFdrW8PL5DK8O7o/vC5NvtnQNRbYiGhQKXR7V2WH9vFm8ax2KlIY4vwoSfJ3QkVDHsZGRMMvX+Z4tbfIGdRGIQxxTv1H9vzh2/ewYiMi4M/9xS7+Aga7WfQUPVq53kkQV5a8ZcwIG9HcZD6VFuWqeQI2aiHmg+die+noW5ahYCOam2unypz97FGrMCu2ThxJpTYvQ1bPM9iIZiXtfhWLz2bbWNh4ddNx8nO4f6W+0RwSGfHzVYsXLJyGWgVcUv6WsnjkdeHD5EsLV3SSSk0f9pzDZxW8kEvFda7NM5kRT8UfW7+hWYTnbwovU6U2zha8vq4p2DhxXiTX2X02mRHT0izv/Eczk/VU6ujJa25B5I3YOHFzUuuMV2uaEYS58z96+PA+AOD8+bM/7jzo7xfw+PGDXT99n5aWQhBEUGDohx/OCgoMMTz8+7n4Y8cP5OfnstmcTh0jpn0yz8HB8Y0Efz8X/+uJQwUFeUwmq3WrdjNnLHR2djGJVISUFaoAtH2MAIB/HiVcTTpUVJLJZHLahkX16z2NwWABAPYfWU4QIMC/y5XE/eLqEmdBi6EDF7bwDAMAaLWa0+c233/0p16nCw54z8+nPTx5DA79ZVqdRjTN77L2i29b+gf26hkVf/Kij7ffy5fZCxdPdxI4b9u67/u4vWwOZ+GiacXFRQCAhITfN25aG9VnwJ7dR79Y9U1a+rNly+e8sYHr0aN/Nm5aO3zYmJ92H/3qy+/EVZWr1yw1iU60SCq1dJMu66pJ8tOrB4+vaOnXccGMA6OGrnj05PKvv31luEWl0jKzH+a8fDJ3+v5VS/7kcPhHT74KW3o58efbd+MH95s7b/p+b682F6/ugSQPAEBnUhVSyG1EHo9HpdHoDAafb0elUk//9iubzVm29AtfX39fX/9Pl63VaDTnE84CAI7/erBr1+7jxv7P07NFmzbhs2YuSkt/lpz8sGZqmVkZTCazb/Qgd6FHcFDo5yvWz5i+wCQ60SIVa2hMKqTEL1/b7+PVrn+f6QJHz6CWEQOiZtx/+Gel+FXIIZVKPrjfXCaDzWCw2rXqW1yapVIpAAD3Hv4RGty9Y7tBAkfPiI7DW/p2giQPAEBQCBqdIpfWvkEeSk2Rlp7S0j/QGBCRw+F4erbIyEjTaDQZL9KDg17HewgICAYAPM9Iq/nxtm3aEwQxe+7Us7+fKijMd3BwDA4KhaHTzBAUgqBCaSDqdLrc/JSWfh2NV3y82gEACgpfBY0WOHoaqmkAAIdtCwCQyas0GnVp2UtP92Djp0QeITDkGWHb0DXq2hecQ6kpZDKpo8O/IpNyOFyZTCpXyPV6PYfzer0Th80BAMjl/xrqFIm8vo/be/jozz/u2lr97bqgoNCZMxZagRdZbIqsAsoxJ2q1QqfTJlzedeHKTzWvV1W/ms+g0f47ZqRXqeQAAHqNW0wm3B59VamSZ1u75aAYkcvlSaX/6qhLpRJHBwGbxaZQKDLZ6xB9UpnU8PwbKfj6+n+2fK1Wq338+MFPe7cv/3TusSPnGAzLXqjCs6MWF0HZ5Eqns6hU2nudR3UKH/yvHLkO9X2KwQIAyJWv/1JyOcTIOBqllsmhEpTa6wRTVs3GPkdAy+DUtBS1Wm14Wy2pzsnJCgwModFofr4tHyc/MH7k6ZNHxgraSEpK8pMnjwzHtLRpEz75f9PE4sry8jITSkUCX0CDFMybQqG4uwVWVBY4O3kZ/jnYu1MoNA6nviX7dBrD3s6toPB1MN+0jDtQ9AFgMKKrV50z7Cb7YWx4Ns+fp6Y/TxWLK2NiRiqVig0bv3j5MvvFi+dr133K5fKiowYCAEaOHH/r1vVjxw8UFhb88+Du1m0bW7duF/hvI96+c+PTFfOvJl7Ky89Nf5568uQRVxc3FxdXU0lFhWdLbvlLWEVOj/fGP3565XLiz8Ul2Xn5qYd+/Xzb7o8UirfEh20bFpX89Oqtu/EFhc+vJh3ML0ir//mmUFUidXSrMyaRyarmoUNHf7V+5ew5U1av+qZjhy7ffL3tx91bp340hkqlhoW22bxpp52dPQCgd2RfpVJx7PiBXbu/53J573Xt8fHHc95Iavy4yRqNeseOLaVlJVwuLzS09fqv4qxgHJjNo9o60mWVCo6d6ePltQrpOWb46ivX9p+/9COLxfMStZo2eTuL9ZbtB316TZXKKs/+GafT64Jadh0QNXP/0WU6PZQt7dIymf+QOgeDaw/CdOd8uUoBWveor4VBZi4fzm/9Pt8rhHS7QP75qyIjRSfwskMtxNyoFZqK7NLYuXWuBSbRoofmQNse9sXPK3S6ZheFojSzIrhjfVtzmsUiYVLReYBjenK5i/+bs5oGklMSj5xcXestLpsvlYtrTzN8yMC+s0ylMDP7wU8Hap9B0Om0FIICamsmdekwbEDUjFo/pZSpFVWK0Ij6WvnYiOamXS/75w/zNCotjVHLLEtQy4hP58fX+kGNRk2j1d7Yp1JNGZhU5BFalwatVkOhUGttr9ejQZwv7jas9v94RrARERA9wenY5jz/90T/vUWl0thsGxSiYGkoyxYLXCi+rd6SIG4jIoAvYPSMdcp5UIBaCHQqCyU6pbxXrNNbn8RGRINfa16vkY7Z963Zi5X5EqpWPnJOg3bNYiMiw8OP3XWg3fMbLzUqKBPQaCl5UU4H8kFTGzoNgduIKPFrzXP2YJ4/UKyn0p18HKxg0B4AIC6Slr4ob9XVtkP022tkI9iIiLF1pI+c437/csWNs1luAQ5sPovDJ+/uqnrQqLTVJTJJsYQvoA6fJbRzatwKFWxEUtCul327Xvb3r1Sk3CnLFWvs3W30gKAzqXQWlSDrqecEAVRyjUal1Wp08kq5UqJuEcztMk7g2uJdJjCxEUlEu5727XraS6s0Oamy8kK1pFKpkutkEpIGM7dxoNP1OjsB1c6J5iISuHk3KXYFNiLp4NrSgjqQ9AxReNSxXJZO0dV7Rh/JYdvQgDW0+5sRtbc/uHxqeYHS7GJMRmGmnC/Ax/FZErUb0dGVobfYFSJajZ7Lp9phI1oUtRtR4M7k2dEeJpabXY8JSPy1IDSCX9feCAw5qe+85svHSihUonV3BxqdpCMIb6BS6q6dLGzZlhfcqdk19i2dtxwc/ndCefINMY1OYduQun/N5lGLsuV2AnrYe3z/tohXr2DegbcY0XAEg7hULasi+3woX0Dn2ZH6fwumHt5uRAzGDFhG4w9j9WAjYkgBNiKGFGAjYkgBNiKGFGAjYkjB/wHB5lItaUXdCAAAAABJRU5ErkJggg==" />
+</p>
+
+<p>We'll also define a utility to render the agent outputs nicely:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">print_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">output_messages_key</span><span class="o">=</span><span class="s2">&quot;llm_input_messages&quot;</span><span class="p">):</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>        <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">update</span> <span class="ow">in</span> <span class="n">chunk</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update from node: </span><span class="si">{</span><span class="n">node</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>            <span class="n">messages_key</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>                <span class="n">output_messages_key</span> <span class="k">if</span> <span class="n">node</span> <span class="o">==</span> <span class="s2">&quot;pre_model_hook&quot;</span> <span class="k">else</span> <span class="s2">&quot;messages&quot;</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>            <span class="p">)</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>            <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="n">messages_key</span><span class="p">]:</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>                    <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>                <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>                    <span class="n">message</span><span class="o">.</span><span class="n">pretty_print</span><span class="p">()</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Now let's run the agent with a few different queries to reach the specified max tokens limit:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;configurable&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;What&#39;s the weather in NYC?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">result</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;What&#39;s it known for?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="n">result</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Let's see how many tokens we have in the message history so far:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">messages</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">count_tokens_approximately</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="go">415</span>
+</span></code></pre></div>
+<p>You can see that we are close to the <code>max_tokens</code> threshold, so on the next invocation we should see <code>pre_model_hook</code> kick-in and trim the message history. Let's run it again:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;where can i find the best bagel?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">print_stream</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;updates&quot;</span><span class="p">))</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="go">Update from node: pre_model_hook</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="go">What&#39;s it known for?</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">New York City is known for a variety of iconic landmarks, cultural institutions, and vibrant neighborhoods. Some of the most notable features include:</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="go">1. **Statue of Liberty**: A symbol of freedom and democracy, located on Liberty Island.</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="go">2. **Times Square**: Known for its bright lights, Broadway theaters, and bustling atmosphere.</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="go">3. **Central Park**: A large public park offering a natural retreat in the middle of the city.</span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="go">4. **Empire State Building**: An iconic skyscraper offering panoramic views of the city.</span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="go">5. **Broadway**: Famous for its world-class theater productions.</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="go">6. **Wall Street**: The financial hub of the United States.</span>
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="go">7. **Museums**: Including the Metropolitan Museum of Art, Museum of Modern Art (MoMA), and the American Museum of Natural History.</span>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="go">8. **Diverse Cuisine**: A melting pot of cultures offering a wide range of culinary experiences.</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="go">9. **Cultural Diversity**: A rich tapestry of cultures and communities from around the world.</span>
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="go">10. **Fashion**: A global fashion capital, hosting events like New York Fashion Week.</span>
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>
+</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="go">These are just a few highlights of what makes New York City a unique and vibrant place.</span>
+</span><span id="__span-13-21"><a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-13-22"><a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>
+</span><span id="__span-13-23"><a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="go">where can i find the best bagel?</span>
+</span><span id="__span-13-24"><a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a>
+</span><span id="__span-13-25"><a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a>
+</span><span id="__span-13-26"><a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a>
+</span><span id="__span-13-27"><a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="go">Update from node: agent</span>
+</span><span id="__span-13-28"><a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-13-29"><a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>
+</span><span id="__span-13-30"><a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="go">New York City is famous for its bagels, and there are several places renowned for serving some of the best. Here are a few top spots where you can find excellent bagels in NYC:</span>
+</span><span id="__span-13-31"><a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>
+</span><span id="__span-13-32"><a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a><span class="go">1. **Ess-a-Bagel**: Known for their large, chewy bagels with a variety of spreads and toppings.</span>
+</span><span id="__span-13-33"><a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a><span class="go">2. **Russ &amp; Daughters**: A classic spot offering traditional bagels with high-quality smoked fish and cream cheese.</span>
+</span><span id="__span-13-34"><a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a><span class="go">3. **H&amp;H Bagels**: Famous for their fresh, hand-rolled bagels.</span>
+</span><span id="__span-13-35"><a id="__codelineno-13-35" name="__codelineno-13-35" href="#__codelineno-13-35"></a><span class="go">4. **Murray’s Bagels**: Offers a wide selection of bagels and spreads, with a no-toasting policy to preserve freshness.</span>
+</span><span id="__span-13-36"><a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a><span class="go">5. **Absolute Bagels**: Known for their authentic, fluffy bagels and a variety of cream cheese options.</span>
+</span><span id="__span-13-37"><a id="__codelineno-13-37" name="__codelineno-13-37" href="#__codelineno-13-37"></a><span class="go">6. **Tompkins Square Bagels**: Offers creative bagel sandwiches and a wide range of spreads.</span>
+</span><span id="__span-13-38"><a id="__codelineno-13-38" name="__codelineno-13-38" href="#__codelineno-13-38"></a><span class="go">7. **Bagel Hole**: Known for their smaller, denser bagels with a crispy crust.</span>
+</span><span id="__span-13-39"><a id="__codelineno-13-39" name="__codelineno-13-39" href="#__codelineno-13-39"></a>
+</span><span id="__span-13-40"><a id="__codelineno-13-40" name="__codelineno-13-40" href="#__codelineno-13-40"></a><span class="go">Each of these places has its own unique style and flavor, so it might be worth trying a few to find your personal favorite!</span>
+</span></code></pre></div>
+You can see that the <code>pre_model_hook</code> node now only returned the last 3 messages, as expected. However, the existing message history is untouched:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">updated_messages</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">assert</span> <span class="p">[(</span><span class="n">m</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">updated_messages</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">messages</span><span class="p">)]]</span> <span class="o">==</span> <span class="p">[</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">messages</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="p">]</span>
+</span></code></pre></div>
+<h2 id="overwrite-the-original-message-history">Overwrite the original message history<a class="headerlink" href="#overwrite-the-original-message-history" title="Permanent link">&para;</a></h2>
+<p>Let's now change the <code>pre_model_hook</code> to <strong>overwrite</strong> the message history in the graph state. To do this, we’ll return the updated messages under <code>messages</code> key. We’ll also include a special <code>RemoveMessage(REMOVE_ALL_MESSAGES)</code> object, which tells <code>create_react_agent</code> to remove previous messages from the graph state:</p>
+<p><sup><i>API Reference: <a href="https://python.langchain.com/api_reference/core/messages/langchain_core.messages.modifier.RemoveMessage.html">RemoveMessage</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">RemoveMessage</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph.message</span><span class="w"> </span><span class="kn">import</span> <span class="n">REMOVE_ALL_MESSAGES</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">pre_model_hook</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="n">trimmed_messages</span> <span class="o">=</span> <span class="n">trim_messages</span><span class="p">(</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">],</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>        <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">,</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>        <span class="n">token_counter</span><span class="o">=</span><span class="n">count_tokens_approximately</span><span class="p">,</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>        <span class="n">max_tokens</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>        <span class="n">start_on</span><span class="o">=</span><span class="s2">&quot;human&quot;</span><span class="p">,</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>        <span class="n">end_on</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;human&quot;</span><span class="p">,</span> <span class="s2">&quot;tool&quot;</span><span class="p">),</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    <span class="p">)</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>    <span class="c1"># NOTE that we&#39;re now returning the messages under the `messages` key</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>    <span class="c1"># We also remove the existing messages in the history to ensure we&#39;re overwriting the history</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="hll">    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">RemoveMessage</span><span class="p">(</span><span class="n">REMOVE_ALL_MESSAGES</span><span class="p">)]</span> <span class="o">+</span> <span class="n">trimmed_messages</span><span class="p">}</span>
+</span></span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>
+</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="n">checkpointer</span> <span class="o">=</span> <span class="n">InMemorySaver</span><span class="p">()</span>
+</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="n">graph</span> <span class="o">=</span> <span class="n">create_react_agent</span><span class="p">(</span>
+</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a>    <span class="n">model</span><span class="p">,</span>
+</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>    <span class="n">tools</span><span class="p">,</span>
+</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="hll">    <span class="n">pre_model_hook</span><span class="o">=</span><span class="n">pre_model_hook</span><span class="p">,</span>
+</span></span><span id="__span-15-24"><a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a>    <span class="n">checkpointer</span><span class="o">=</span><span class="n">checkpointer</span><span class="p">,</span>
+</span><span id="__span-15-25"><a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Now let's run the agent with the same queries as before:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;configurable&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;What&#39;s the weather in NYC?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">result</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;What&#39;s it known for?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="n">result</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="n">messages</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;where can i find the best bagel?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">print_stream</span><span class="p">(</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">graph</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;updates&quot;</span><span class="p">),</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">output_messages_key</span><span class="o">=</span><span class="s2">&quot;messages&quot;</span><span class="p">,</span>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="go">Update from node: pre_model_hook</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="go">================================ Remove Message ================================</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="go">What&#39;s it known for?</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="go">New York City is known for a variety of iconic landmarks, cultural institutions, and vibrant neighborhoods. Some of the most notable features include:</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="go">1. **Statue of Liberty**: A symbol of freedom and democracy, located on Liberty Island.</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="go">2. **Times Square**: Known for its bright lights, Broadway theaters, and bustling atmosphere.</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="go">3. **Central Park**: A large public park offering a natural oasis amidst the urban environment.</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="go">4. **Empire State Building**: An iconic skyscraper offering panoramic views of the city.</span>
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="go">5. **Broadway**: Famous for its world-class theater productions and musicals.</span>
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="go">6. **Wall Street**: The financial hub of the United States, located in the Financial District.</span>
+</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="go">7. **Museums**: Including the Metropolitan Museum of Art, Museum of Modern Art (MoMA), and the American Museum of Natural History.</span>
+</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="go">8. **Diverse Cuisine**: A melting pot of cultures, offering a wide range of international foods.</span>
+</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a><span class="go">9. **Cultural Diversity**: Known for its diverse population and vibrant cultural scene.</span>
+</span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a><span class="go">10. **Brooklyn Bridge**: An iconic suspension bridge connecting Manhattan and Brooklyn.</span>
+</span><span id="__span-17-22"><a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a>
+</span><span id="__span-17-23"><a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a><span class="go">These are just a few highlights, as NYC is a city with endless attractions and activities.</span>
+</span><span id="__span-17-24"><a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-17-25"><a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a>
+</span><span id="__span-17-26"><a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a><span class="go">where can i find the best bagel?</span>
+</span><span id="__span-17-27"><a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a>
+</span><span id="__span-17-28"><a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a>
+</span><span id="__span-17-29"><a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a>
+</span><span id="__span-17-30"><a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a><span class="go">Update from node: agent</span>
+</span><span id="__span-17-31"><a id="__codelineno-17-31" name="__codelineno-17-31" href="#__codelineno-17-31"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-17-32"><a id="__codelineno-17-32" name="__codelineno-17-32" href="#__codelineno-17-32"></a>
+</span><span id="__span-17-33"><a id="__codelineno-17-33" name="__codelineno-17-33" href="#__codelineno-17-33"></a><span class="go">New York City is famous for its bagels, and there are several places renowned for serving some of the best. Here are a few top spots where you can find delicious bagels in NYC:</span>
+</span><span id="__span-17-34"><a id="__codelineno-17-34" name="__codelineno-17-34" href="#__codelineno-17-34"></a>
+</span><span id="__span-17-35"><a id="__codelineno-17-35" name="__codelineno-17-35" href="#__codelineno-17-35"></a><span class="go">1. **Ess-a-Bagel**: Known for its large, chewy bagels and a wide variety of spreads and toppings. Locations in Midtown and the East Village.</span>
+</span><span id="__span-17-36"><a id="__codelineno-17-36" name="__codelineno-17-36" href="#__codelineno-17-36"></a>
+</span><span id="__span-17-37"><a id="__codelineno-17-37" name="__codelineno-17-37" href="#__codelineno-17-37"></a><span class="go">2. **Russ &amp; Daughters**: A historic appetizing store on the Lower East Side, famous for its bagels with lox and cream cheese.</span>
+</span><span id="__span-17-38"><a id="__codelineno-17-38" name="__codelineno-17-38" href="#__codelineno-17-38"></a>
+</span><span id="__span-17-39"><a id="__codelineno-17-39" name="__codelineno-17-39" href="#__codelineno-17-39"></a><span class="go">3. **Absolute Bagels**: Located on the Upper West Side, this spot is popular for its fresh, fluffy bagels.</span>
+</span><span id="__span-17-40"><a id="__codelineno-17-40" name="__codelineno-17-40" href="#__codelineno-17-40"></a>
+</span><span id="__span-17-41"><a id="__codelineno-17-41" name="__codelineno-17-41" href="#__codelineno-17-41"></a><span class="go">4. **Murray’s Bagels**: Known for its traditional, hand-rolled bagels. Located in Greenwich Village.</span>
+</span><span id="__span-17-42"><a id="__codelineno-17-42" name="__codelineno-17-42" href="#__codelineno-17-42"></a>
+</span><span id="__span-17-43"><a id="__codelineno-17-43" name="__codelineno-17-43" href="#__codelineno-17-43"></a><span class="go">5. **Tompkins Square Bagels**: Offers a wide selection of bagels and creative cream cheese flavors. Located in the East Village.</span>
+</span><span id="__span-17-44"><a id="__codelineno-17-44" name="__codelineno-17-44" href="#__codelineno-17-44"></a>
+</span><span id="__span-17-45"><a id="__codelineno-17-45" name="__codelineno-17-45" href="#__codelineno-17-45"></a><span class="go">6. **Bagel Hole**: A small shop in Park Slope, Brooklyn, known for its classic, no-frills bagels.</span>
+</span><span id="__span-17-46"><a id="__codelineno-17-46" name="__codelineno-17-46" href="#__codelineno-17-46"></a>
+</span><span id="__span-17-47"><a id="__codelineno-17-47" name="__codelineno-17-47" href="#__codelineno-17-47"></a><span class="go">7. **Leo’s Bagels**: Located in the Financial District, known for its authentic New York-style bagels.</span>
+</span><span id="__span-17-48"><a id="__codelineno-17-48" name="__codelineno-17-48" href="#__codelineno-17-48"></a>
+</span><span id="__span-17-49"><a id="__codelineno-17-49" name="__codelineno-17-49" href="#__codelineno-17-49"></a><span class="go">Each of these places has its own unique style and flavor, so it might be worth trying a few to find your personal favorite!</span>
+</span></code></pre></div>
+You can see that the <code>pre_model_hook</code> node returned the last 3 messages again. However, this time, the message history is modified in the graph state as well:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="n">updated_messages</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="k">assert</span> <span class="p">(</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>    <span class="c1"># First 2 messages in the new history are the same as last 2 messages in the old</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="p">[(</span><span class="n">m</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">updated_messages</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="o">==</span> <span class="p">[(</span><span class="n">m</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]]</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="summarizing-message-history">Summarizing message history<a class="headerlink" href="#summarizing-message-history" title="Permanent link">&para;</a></h2>
+<p>Finally, let's apply a different strategy for managing message history — summarization. Just as with trimming, you can choose to keep original message history unmodified or overwrite it. The example below will only show the former.</p>
+<p>We will use the <a href="https://langchain-ai.github.io/langmem/guides/summarization/#using-summarizationnode"><code>SummarizationNode</code></a> from the prebuilt <code>langmem</code> library. Once the message history reaches the token limit, the summarization node will summarize earlier messages to make sure they fit into <code>max_tokens</code>.</p>
+<p><sup><i>API Reference: <a href="https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.chat_agent_executor.AgentState">AgentState</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">langmem.short_term</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummarizationNode</span>
+</span></span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt.chat_agent_executor</span><span class="w"> </span><span class="kn">import</span> <span class="n">AgentState</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">)</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="n">summarization_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">max_tokens</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="n">summarization_node</span> <span class="o">=</span> <span class="n">SummarizationNode</span><span class="p">(</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    <span class="n">token_counter</span><span class="o">=</span><span class="n">count_tokens_approximately</span><span class="p">,</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>    <span class="n">model</span><span class="o">=</span><span class="n">summarization_model</span><span class="p">,</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>    <span class="n">max_summary_tokens</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>    <span class="n">output_messages_key</span><span class="o">=</span><span class="s2">&quot;llm_input_messages&quot;</span><span class="p">,</span>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="p">)</span>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">(</span><span class="n">AgentState</span><span class="p">):</span>
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>    <span class="c1"># NOTE: we&#39;re adding this key to keep track of previous summary information</span>
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>    <span class="c1"># to make sure we&#39;re not summarizing on every LLM call</span>
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a><span class="hll">    <span class="n">context</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</span></span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a>
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="n">checkpointer</span> <span class="o">=</span> <span class="n">InMemorySaver</span><span class="p">()</span>
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="n">graph</span> <span class="o">=</span> <span class="n">create_react_agent</span><span class="p">(</span>
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a>    <span class="c1"># limit the output size to ensure consistent behavior</span>
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a>    <span class="n">model</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">max_tokens</span><span class="o">=</span><span class="mi">256</span><span class="p">),</span>
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a>    <span class="n">tools</span><span class="p">,</span>
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="hll">    <span class="n">pre_model_hook</span><span class="o">=</span><span class="n">summarization_node</span><span class="p">,</span>
+</span></span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="hll">    <span class="n">state_schema</span><span class="o">=</span><span class="n">State</span><span class="p">,</span>
+</span></span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>    <span class="n">checkpointer</span><span class="o">=</span><span class="n">checkpointer</span><span class="p">,</span>
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a><span class="p">)</span>
+</span></code></pre></div>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;configurable&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;What&#39;s the weather in NYC?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">result</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;What&#39;s it known for?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="n">result</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;where can i find the best bagel?&quot;</span><span class="p">)]}</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="n">print_stream</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;updates&quot;</span><span class="p">))</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="go">Update from node: pre_model_hook</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="go">================================ System Message ================================</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="go">Summary of the conversation so far: The user asked about the current weather in New York City. In response, the assistant provided information that it might be cloudy, with a chance of rain, and temperatures reaching up to 80 degrees.</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="go">What&#39;s it known for?</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="go">New York City, often referred to as NYC, is known for its:</span>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="go">1. **Landmarks and Iconic Sites**:</span>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="go">   - **Statue of Liberty**: A symbol of freedom and democracy.</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="go">   - **Central Park**: A vast green oasis in the middle of the city.</span>
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="go">   - **Empire State Building**: Once the tallest building in the world, offering stunning views of the city.</span>
+</span><span id="__span-21-16"><a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a><span class="go">   - **Times Square**: Known for its bright lights and bustling atmosphere.</span>
+</span><span id="__span-21-17"><a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>
+</span><span id="__span-21-18"><a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="go">2. **Cultural Institutions**:</span>
+</span><span id="__span-21-19"><a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="go">   - **Broadway**: Renowned for theatrical performances and musicals.</span>
+</span><span id="__span-21-20"><a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="go">   - **Metropolitan Museum of Art** and **Museum of Modern Art (MoMA)**: World-class art collections.</span>
+</span><span id="__span-21-21"><a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="go">   - **American Museum of Natural History**: Known for its extensive exhibits ranging from dinosaurs to space exploration.</span>
+</span><span id="__span-21-22"><a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a>
+</span><span id="__span-21-23"><a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a><span class="go">3. **Diverse Neighborhoods and Cuisine**:</span>
+</span><span id="__span-21-24"><a id="__codelineno-21-24" name="__codelineno-21-24" href="#__codelineno-21-24"></a><span class="go">   - NYC is famous for having a melting pot of cultures, reflected in neighborhoods like Chinatown, Little Italy, and Harlem.</span>
+</span><span id="__span-21-25"><a id="__codelineno-21-25" name="__codelineno-21-25" href="#__codelineno-21-25"></a><span class="go">   - The city offers a wide range of international cuisines, from street food to high-end dining.</span>
+</span><span id="__span-21-26"><a id="__codelineno-21-26" name="__codelineno-21-26" href="#__codelineno-21-26"></a>
+</span><span id="__span-21-27"><a id="__codelineno-21-27" name="__codelineno-21-27" href="#__codelineno-21-27"></a><span class="go">4. **Financial District**:</span>
+</span><span id="__span-21-28"><a id="__codelineno-21-28" name="__codelineno-21-28" href="#__codelineno-21-28"></a><span class="go">   - Home to Wall Street, the New York Stock Exchange (NYSE), and other major financial institutions.</span>
+</span><span id="__span-21-29"><a id="__codelineno-21-29" name="__codelineno-21-29" href="#__codelineno-21-29"></a>
+</span><span id="__span-21-30"><a id="__codelineno-21-30" name="__codelineno-21-30" href="#__codelineno-21-30"></a><span class="go">5. **Media and Entertainment**:</span>
+</span><span id="__span-21-31"><a id="__codelineno-21-31" name="__codelineno-21-31" href="#__codelineno-21-31"></a><span class="go">   - Major hub for television, film, and media, with numerous studios and networks based there.</span>
+</span><span id="__span-21-32"><a id="__codelineno-21-32" name="__codelineno-21-32" href="#__codelineno-21-32"></a>
+</span><span id="__span-21-33"><a id="__codelineno-21-33" name="__codelineno-21-33" href="#__codelineno-21-33"></a><span class="go">6. **Fashion**:</span>
+</span><span id="__span-21-34"><a id="__codelineno-21-34" name="__codelineno-21-34" href="#__codelineno-21-34"></a><span class="go">   - Often referred to as one of the &quot;Big Four&quot; fashion capitals, hosting events like New York Fashion Week.</span>
+</span><span id="__span-21-35"><a id="__codelineno-21-35" name="__codelineno-21-35" href="#__codelineno-21-35"></a>
+</span><span id="__span-21-36"><a id="__codelineno-21-36" name="__codelineno-21-36" href="#__codelineno-21-36"></a><span class="go">7. **Sports**:</span>
+</span><span id="__span-21-37"><a id="__codelineno-21-37" name="__codelineno-21-37" href="#__codelineno-21-37"></a><span class="go">   - Known for its passionate sports culture with teams like the Yankees (MLB), Mets (MLB), Knicks (NBA), and Rangers (NHL).</span>
+</span><span id="__span-21-38"><a id="__codelineno-21-38" name="__codelineno-21-38" href="#__codelineno-21-38"></a>
+</span><span id="__span-21-39"><a id="__codelineno-21-39" name="__codelineno-21-39" href="#__codelineno-21-39"></a><span class="go">These elements, among others, contribute to NYC&#39;s reputation as a vibrant and dynamic city.</span>
+</span><span id="__span-21-40"><a id="__codelineno-21-40" name="__codelineno-21-40" href="#__codelineno-21-40"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-21-41"><a id="__codelineno-21-41" name="__codelineno-21-41" href="#__codelineno-21-41"></a>
+</span><span id="__span-21-42"><a id="__codelineno-21-42" name="__codelineno-21-42" href="#__codelineno-21-42"></a><span class="go">where can i find the best bagel?</span>
+</span><span id="__span-21-43"><a id="__codelineno-21-43" name="__codelineno-21-43" href="#__codelineno-21-43"></a>
+</span><span id="__span-21-44"><a id="__codelineno-21-44" name="__codelineno-21-44" href="#__codelineno-21-44"></a>
+</span><span id="__span-21-45"><a id="__codelineno-21-45" name="__codelineno-21-45" href="#__codelineno-21-45"></a>
+</span><span id="__span-21-46"><a id="__codelineno-21-46" name="__codelineno-21-46" href="#__codelineno-21-46"></a><span class="go">Update from node: agent</span>
+</span><span id="__span-21-47"><a id="__codelineno-21-47" name="__codelineno-21-47" href="#__codelineno-21-47"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-21-48"><a id="__codelineno-21-48" name="__codelineno-21-48" href="#__codelineno-21-48"></a>
+</span><span id="__span-21-49"><a id="__codelineno-21-49" name="__codelineno-21-49" href="#__codelineno-21-49"></a><span class="go">Finding the best bagel in New York City can be subjective, as there are many beloved spots across the city. However, here are some renowned bagel shops you might want to try:</span>
+</span><span id="__span-21-50"><a id="__codelineno-21-50" name="__codelineno-21-50" href="#__codelineno-21-50"></a>
+</span><span id="__span-21-51"><a id="__codelineno-21-51" name="__codelineno-21-51" href="#__codelineno-21-51"></a><span class="go">1. **Ess-a-Bagel**: Known for its chewy and flavorful bagels, located in Midtown and Stuyvesant Town.</span>
+</span><span id="__span-21-52"><a id="__codelineno-21-52" name="__codelineno-21-52" href="#__codelineno-21-52"></a>
+</span><span id="__span-21-53"><a id="__codelineno-21-53" name="__codelineno-21-53" href="#__codelineno-21-53"></a><span class="go">2. **Bagel Hole**: A favorite for traditionalists, offering classic and dense bagels, located in Park Slope, Brooklyn.</span>
+</span><span id="__span-21-54"><a id="__codelineno-21-54" name="__codelineno-21-54" href="#__codelineno-21-54"></a>
+</span><span id="__span-21-55"><a id="__codelineno-21-55" name="__codelineno-21-55" href="#__codelineno-21-55"></a><span class="go">3. **Russ &amp; Daughters**: A legendary appetizing store on the Lower East Side, famous for their bagels with lox.</span>
+</span><span id="__span-21-56"><a id="__codelineno-21-56" name="__codelineno-21-56" href="#__codelineno-21-56"></a>
+</span><span id="__span-21-57"><a id="__codelineno-21-57" name="__codelineno-21-57" href="#__codelineno-21-57"></a><span class="go">4. **Murray’s Bagels**: Located in Greenwich Village, known for their fresh and authentic New York bagels.</span>
+</span><span id="__span-21-58"><a id="__codelineno-21-58" name="__codelineno-21-58" href="#__codelineno-21-58"></a>
+</span><span id="__span-21-59"><a id="__codelineno-21-59" name="__codelineno-21-59" href="#__codelineno-21-59"></a><span class="go">5. **Absolute Bagels**: Located on the Upper West Side, they’re known for their fresh, fluffy bagels with a variety of spreads.</span>
+</span><span id="__span-21-60"><a id="__codelineno-21-60" name="__codelineno-21-60" href="#__codelineno-21-60"></a>
+</span><span id="__span-21-61"><a id="__codelineno-21-61" name="__codelineno-21-61" href="#__codelineno-21-61"></a><span class="go">6. **Tompkins Square Bagels**: In the East Village, famous for their creative cream cheese options and fresh bagels.</span>
+</span><span id="__span-21-62"><a id="__codelineno-21-62" name="__codelineno-21-62" href="#__codelineno-21-62"></a>
+</span><span id="__span-21-63"><a id="__codelineno-21-63" name="__codelineno-21-63" href="#__codelineno-21-63"></a><span class="go">7. **Zabar’s**: A landmark on the Upper West Side known for their classic bagels and smoked fish.</span>
+</span><span id="__span-21-64"><a id="__codelineno-21-64" name="__codelineno-21-64" href="#__codelineno-21-64"></a>
+</span><span id="__span-21-65"><a id="__codelineno-21-65" name="__codelineno-21-65" href="#__codelineno-21-65"></a><span class="go">Each of these spots offers a unique take on the classic New York bagel experience, and trying several might be the best way to discover your personal favorite!</span>
+</span></code></pre></div>
+You can see that the earlier messages have now been replaced with the summary of the earlier conversation!</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Please help us improve this page by adding to the discussion below.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 LangChain, Inc | <a href="#__consent">Consent Preferences</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://langchain-ai.github.io/langgraphjs/" target="_blank" rel="noopener" title="langchain-ai.github.io" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M0 32v448h448V32zm243.8 349.4c0 43.6-25.6 63.5-62.9 63.5-33.7 0-53.2-17.4-63.2-38.5l34.3-20.7c6.6 11.7 12.6 21.6 27.1 21.6 13.8 0 22.6-5.4 22.6-26.5V237.7h42.1zm99.6 63.5c-39.1 0-64.4-18.6-76.7-43l34.3-19.8c9 14.7 20.8 25.6 41.5 25.6 17.4 0 28.6-8.7 28.6-20.8 0-14.4-11.4-19.5-30.7-28l-10.5-4.5c-30.4-12.9-50.5-29.2-50.5-63.5 0-31.6 24.1-55.6 61.6-55.6 26.8 0 46 9.3 59.8 33.7L368 290c-7.2-12.9-15-18-27.1-18-12.3 0-20.1 7.8-20.1 18 0 12.6 7.8 17.7 25.9 25.6l10.5 4.5c35.8 15.3 55.9 31 55.9 66.2 0 37.8-29.8 58.6-69.7 58.6"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/LangChainAI" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+
+  
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. <strong>Clicking "Accept" makes our documentation better. Thank you!</strong> ❤️</p>
+<input class="md-toggle" type="checkbox" id="__settings" checked>
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" checked>
+      <span class="task-list-indicator"></span>
+      Google Analytics
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">Reject</button>
+    
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["announce.dismiss", "content.code.annotate", "content.code.copy", "content.code.select", "content.tabs.link", "content.action.edit", "content.tooltips", "navigation.indexes", "navigation.footer", "navigation.instant", "navigation.sections", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.tabs", "navigation.top", "navigation.prune", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>

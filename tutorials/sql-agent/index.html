@@ -1,0 +1,2306 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Build reliable, stateful AI systems, without giving up control">
+      
+      
+      
+        <link rel="canonical" href="https://langchain-ai.github.io/langgraph/tutorials/sql-agent/">
+      
+      
+        <link rel="prev" href="../multi_agent/agent_supervisor/">
+      
+      
+        <link rel="next" href="../../how-tos/run-id-langsmith/">
+      
+      
+      <link rel="icon" href="../../static/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+  
+    <title>SQL agent</title>
+  
+
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Public+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Public Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/navigation_title_ovverides.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/version_admonitions.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/logos.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/sticky_navigation.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/agent_graph_widget.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-G8X6ELZYE0"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-G8X6ELZYE0",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-G8X6ELZYE0",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+    
+  <meta name="algolia-site-verification" content="165B7E7C89E49946" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Public+Sans&display=swap");
+    :root {
+      --md-primary-fg-color: #333333;
+      --md-accent-fg-color: #1E88E5;
+      --md-default-bg-color: #FFFFFF;
+      --md-default-fg-color: #333333;
+      --md-text-font-family: "Public Sans", sans-serif;
+    }
+
+    body {
+      font-family: var(--md-text-font-family);
+      background-color: var(--md-default-bg-color);
+      color: var(--md-default-fg-color);
+    }
+
+    .md-main {
+      background-color: #FFFFFF;
+    }
+
+    .md-footer {
+      background-color: #F5F5F5;
+      color: #666666;
+    }
+
+    .md-footer-meta {
+      background-color: #4d4d4d;
+    }
+
+    .md-typeset a {
+      color: #1E88E5;
+    }
+
+    .md-typeset a:hover {
+      color: #1565C0;
+    }
+
+    .md-nav__link--active,
+    .md-nav__link:active {
+      color: #1E88E5;
+    }
+
+    .md-search__input {
+      background-color: #F5F5F5;
+      color: #333333;
+    }
+
+    .md-search__input:hover,
+    .md-search__input:focus {
+      background-color: #EEEEEE;
+    }
+    /* Table of contents styles */
+    .md-nav--secondary .md-nav__item--active > .md-nav__link {
+      font-weight: bold;
+      color: var(--md-primary-fg-color);
+    }
+
+    .md-nav--secondary .md-nav__item--nested > .md-nav__link {
+      font-weight: normal;
+      color: var(--md-default-fg-color);
+    }
+
+    .md-nav--secondary .md-nav__item--nested > .md-nav__link::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: var(--md-default-fg-color);
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    [data-md-color-scheme="slate"] {
+      --md-default-bg-color: #1E1E1E;
+      --md-default-fg-color: #FFFFFF;
+      --md-accent-fg-color: #64B5F6;
+    }
+
+    [data-md-color-scheme="slate"] .md-main {
+      background-color: #1E1E1E;
+    }
+
+    [data-md-color-scheme="slate"] .navbar {
+      background-color: #1E1E1E;
+      color: #FFFFFF;
+      box-shadow: none;
+    }
+
+    [data-md-color-scheme="slate"] .md-footer {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-header {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-tabs {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__input {
+      background-color: #F5F5F5;
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__icon {
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__input::placeholder {
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-footer-meta {
+      background-color: #4d4d4d;
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset a {
+      color: #64B5F6;
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset a:hover {
+      color: #90CAF9;
+    }
+
+    .notebook-links {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+    .notebook-links .md-content__button {
+      margin-left: 0.5rem;
+    }
+
+    [data-md-color-scheme=default] .logo-dark {
+      display: none !important;
+    }
+
+    [data-md-color-scheme=slate] .logo-light {
+      display: none !important;
+    }
+
+    .jupyter-wrapper .jp-CodeCell .jp-Cell-inputWrapper .jp-InputPrompt.jp-InputArea-prompt {
+      display: none !important;
+    }
+
+    .jupyter-wrapper .jp-Notebook .jp-Cell .jp-OutputPrompt {
+      display: none !important;
+    }
+
+    .md-banner {
+      background-color: #CFC9FA;
+      color: #000000;
+    }
+
+    .md-banner a {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .md-banner a:hover {
+      color: #000000;
+    }
+
+    .md-header__title {
+      visibility: hidden;
+    }
+
+    /* Dark mode banner links */
+    [data-md-color-scheme="slate"] .md-banner a {
+      color: #000000;
+    }
+
+    [data-md-color-scheme="slate"] .md-banner a:hover {
+      color: #000000;
+    }
+
+  </style>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#build-a-sql-agent" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<strong>We are growing and hiring for multiple roles for LangChain, LangGraph and LangSmith. <a href="https://www.langchain.com/careers" target="_blank" rel="noopener noreferrer"> Join our team!</a></strong>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="LangGraph" class="md-header__button md-logo" aria-label="LangGraph" data-md-component="logo">
+      
+  <img src="../../static/wordmark_dark.svg" alt="logo" class="logo-light" />
+  <img src="../../static/wordmark_light.svg" alt="logo" class="logo-dark" />
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LangGraph
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SQL agent
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="gray"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent="white"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/langchain-ai/langgraph" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../rag/langgraph_agentic_rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/faq/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Resources
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="LangGraph" class="md-nav__button md-logo" aria-label="LangGraph" data-md-component="logo">
+      
+  <img src="../../static/wordmark_dark.svg" alt="logo" class="logo-light" />
+  <img src="../../static/wordmark_light.svg" alt="logo" class="logo-dark" />
+
+    </a>
+    LangGraph
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/langchain-ai/langgraph" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../.." class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../reference/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rag/langgraph_agentic_rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agentic RAG
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi_agent/agent_supervisor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agent Supervisor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    SQL agent
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    SQL agent
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-a-llm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Select a LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configure the database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools-for-database-interactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tools for database interactions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-using-a-prebuilt-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Using a prebuilt agent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-customizing-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Customizing the agent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-tos/run-id-langsmith/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Graph runs in LangSmith
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    LangGraph Platform
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            LangGraph Platform
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../auth/getting_started/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Authentication
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cloud/deployment/graph_rebuild/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild graph at runtime
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-tos/use-remote-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Use RemoteGraph
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-tos/autogen-langgraph-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy CrewAI, AutoGen, and other frameworks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../cloud/how-tos/use_stream_react/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Front-end and generative UI
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../concepts/faq/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-a-llm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Select a LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configure the database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools-for-database-interactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tools for database interactions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-using-a-prebuilt-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Using a prebuilt agent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-customizing-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Customizing the agent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+<div class="notebook-links">
+  
+</div>
+
+
+                  
+
+
+  
+    <a href="https://github.com/langchain-ai/langgraph/edit/main/docs/docs/tutorials/sql-agent.ipynb" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="build-a-sql-agent">Build a SQL agent<a class="headerlink" href="#build-a-sql-agent" title="Permanent link">&para;</a></h1>
+<p>In this tutorial, we will walk through how to build an agent that can answer questions about a SQL database.</p>
+<p>At a high level, the agent will:</p>
+<ol>
+<li>Fetch the available tables from the database</li>
+<li>Decide which tables are relevant to the question</li>
+<li>Fetch the schemas for the relevant tables</li>
+<li>Generate a query based on the question and information from the schemas</li>
+<li>Double-check the query for common mistakes using an LLM</li>
+<li>Execute the query and return the results</li>
+<li>Correct mistakes surfaced by the database engine until the query is successful</li>
+<li>Formulate a response based on the results</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Security note</p>
+<p>Building Q&amp;A systems of SQL databases requires executing model-generated SQL queries. There are inherent risks in doing this. Make sure that your database connection permissions are always scoped as narrowly as possible for your agent's needs. This will mitigate though not eliminate the risks of building a model-driven system.</p>
+</div>
+<h2 id="1-setup">1. Setup<a class="headerlink" href="#1-setup" title="Permanent link">&para;</a></h2>
+<p>Let's first install some dependencies. This tutorial uses SQL database and tool abstractions from <a href="https://python.langchain.com/docs/concepts/architecture/#langchain-community">langchain-community</a>. We will also require a LangChain <a href="https://python.langchain.com/docs/concepts/chat_models/">chat model</a>.</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>langgraph<span class="w"> </span>langchain_community<span class="w"> </span><span class="s2">&quot;langchain[openai]&quot;</span>
+</span></code></pre></div>
+<div class="admonition tip">
+    <p class="admonition-title">Set up <a href="https://smith.langchain.com">LangSmith</a> for LangGraph development</p>
+    <p style="padding-top: 5px;">
+        Sign up for LangSmith to quickly spot issues and improve the performance of your LangGraph projects. LangSmith lets you use trace data to debug, test, and monitor your LLM apps built with LangGraph — read more about how to get started <a href="https://docs.smith.langchain.com">here</a>. 
+    </p>
+</div>
+
+<h3 id="select-a-llm">Select a LLM<a class="headerlink" href="#select-a-llm" title="Permanent link">&para;</a></h3>
+<p>First we <a href="https://python.langchain.com/docs/how_to/chat_models_universal_init/">initialize our LLM</a>. Any model supporting <a href="https://python.langchain.com/docs/integrations/chat/#featured-providers">tool-calling</a> should work. We use OpenAI below.</p>
+<p><sup><i>API Reference: <a href="https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html">init_chat_model</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.chat_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_chat_model</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">init_chat_model</span><span class="p">(</span><span class="s2">&quot;openai:gpt-4.1&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="configure-the-database">Configure the database<a class="headerlink" href="#configure-the-database" title="Permanent link">&para;</a></h3>
+<p>We will be creating a SQLite database for this tutorial. SQLite is a lightweight database that is easy to set up and use. We will be loading the <code>chinook</code> database, which is a sample database that represents a digital media store.
+Find more information about the database <a href="https://www.sqlitetutorial.net/sqlite-sample-database/">here</a>.</p>
+<p>For convenience, we have hosted the database (<code>Chinook.db</code>) on a public GCS bucket.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://storage.googleapis.com/benchmarks-artifacts/chinook/Chinook.db&quot;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="c1"># Open a local file in binary write mode</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;Chinook.db&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="c1"># Write the content of the response (the file) to the local file</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File downloaded and saved as Chinook.db&quot;</span><span class="p">)</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="k">else</span><span class="p">:</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to download the file. Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>We will use a handy SQL database wrapper available in the <code>langchain_community</code> package to interact with the database. The wrapper provides a simple interface to execute SQL queries and fetch results:</p>
+<p><sup><i>API Reference: <a href="https://python.langchain.com/api_reference/community/utilities/langchain_community.utilities.sql_database.SQLDatabase.html">SQLDatabase</a></i></sup></p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_community.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLDatabase</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">db</span> <span class="o">=</span> <span class="n">SQLDatabase</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="s2">&quot;sqlite:///Chinook.db&quot;</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dialect: </span><span class="si">{</span><span class="n">db</span><span class="o">.</span><span class="n">dialect</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="n">db</span><span class="o">.</span><span class="n">get_usable_table_names</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Sample output: </span><span class="si">{</span><span class="n">db</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM Artist LIMIT 5;&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">Dialect: sqlite</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">Available tables: [&#39;Album&#39;, &#39;Artist&#39;, &#39;Customer&#39;, &#39;Employee&#39;, &#39;Genre&#39;, &#39;Invoice&#39;, &#39;InvoiceLine&#39;, &#39;MediaType&#39;, &#39;Playlist&#39;, &#39;PlaylistTrack&#39;, &#39;Track&#39;]</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">Sample output: [(1, &#39;AC/DC&#39;), (2, &#39;Accept&#39;), (3, &#39;Aerosmith&#39;), (4, &#39;Alanis Morissette&#39;), (5, &#39;Alice In Chains&#39;)]</span>
+</span></code></pre></div></p>
+<h3 id="tools-for-database-interactions">Tools for database interactions<a class="headerlink" href="#tools-for-database-interactions" title="Permanent link">&para;</a></h3>
+<p><code>langchain-community</code> implements some built-in tools for interacting with our <code>SQLDatabase</code>, including tools for listing tables, reading table schemas, and checking and running queries:</p>
+<p><sup><i>API Reference: <a href="https://python.langchain.com/api_reference/community/agent_toolkits/langchain_community.agent_toolkits.sql.toolkit.SQLDatabaseToolkit.html">SQLDatabaseToolkit</a></i></sup></p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_community.agent_toolkits</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLDatabaseToolkit</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">toolkit</span> <span class="o">=</span> <span class="n">SQLDatabaseToolkit</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="n">llm</span><span class="o">=</span><span class="n">llm</span><span class="p">)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">tools</span> <span class="o">=</span> <span class="n">toolkit</span><span class="o">.</span><span class="n">get_tools</span><span class="p">()</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">:</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="go">sql_db_query: Input to this tool is a detailed and correct SQL query, output is a result from the database. If the query is not correct, an error message will be returned. If an error is returned, rewrite the query, check the query, and try again. If you encounter an issue with Unknown column &#39;xxxx&#39; in &#39;field list&#39;, use sql_db_schema to query the correct table fields.</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="go">sql_db_schema: Input to this tool is a comma-separated list of tables, output is the schema and sample rows for those tables. Be sure that the tables actually exist by calling sql_db_list_tables first! Example Input: table1, table2, table3</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="go">sql_db_list_tables: Input is an empty string, output is a comma-separated list of tables in the database.</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="go">sql_db_query_checker: Use this tool to double check if your query is correct before executing it. Always use this tool before executing a query with sql_db_query!</span>
+</span></code></pre></div></p>
+<h2 id="2-using-a-prebuilt-agent">2. Using a prebuilt agent<a class="headerlink" href="#2-using-a-prebuilt-agent" title="Permanent link">&para;</a></h2>
+<p>Given these tools, we can initialize a pre-built agent in a single line. To customize our agents behavior, we write a descriptive system prompt.</p>
+<p><sup><i>API Reference: <a href="https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.chat_agent_executor.create_react_agent">create_react_agent</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_react_agent</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">system_prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="s2">You are an agent designed to interact with a SQL database.</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="s2">Given an input question, create a syntactically correct </span><span class="si">{dialect}</span><span class="s2"> query to run,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="s2">then look at the results of the query and return the answer. Unless the user</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="s2">specifies a specific number of examples they wish to obtain, always limit your</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="s2">query to at most </span><span class="si">{top_k}</span><span class="s2"> results.</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="s2">You can order the results by a relevant column to return the most interesting</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="s2">examples in the database. Never query for all the columns from a specific table,</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="s2">only ask for the relevant columns given the question.</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="s2">You MUST double check your query before executing it. If you get an error while</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="s2">executing a query, rewrite the query and try again.</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="s2">DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="s2">database.</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="s2">To start you should ALWAYS look at the tables in the database to see what you</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="s2">can query. Do NOT skip this step.</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="s2">Then you should query the schema of the most relevant tables.</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>    <span class="n">dialect</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">dialect</span><span class="p">,</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="p">)</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_react_agent</span><span class="p">(</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>    <span class="n">llm</span><span class="p">,</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>    <span class="n">tools</span><span class="p">,</span>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>    <span class="n">prompt</span><span class="o">=</span><span class="n">system_prompt</span><span class="p">,</span>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This system prompt includes a number of instructions, such as always running specific tools before or after others. In the <a href="#customizing-the-agent">next section</a>, we will enforce these behaviors through the graph's structure, providing us a greater degree of control and allowing us to simplify the prompt.</p>
+</div>
+<p>Let's run this agent on a sample query and observe its behavior:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;Which sales agent made the most in sales in 2009?&quot;</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">question</span><span class="p">}]},</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">,</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">):</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">step</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pretty_print</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="go">Which sales agent made the most in sales in 2009?</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">  sql_db_list_tables (call_0MfnhUYmRNVe03m6fYClaoa0)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="go"> Call ID: call_0MfnhUYmRNVe03m6fYClaoa0</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">  Args:</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="go">    tool_input:</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="go">Name: sql_db_list_tables</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="go">Album, Artist, Customer, Employee, Genre, Invoice, InvoiceLine, MediaType, Playlist, PlaylistTrack, Track</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="go">  sql_db_schema (call_XwI6uES0HeZ2xCRxkkdWzB3I)</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="go"> Call ID: call_XwI6uES0HeZ2xCRxkkdWzB3I</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="go">  Args:</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="go">    table_names: Employee, Invoice, InvoiceLine</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="go">Name: sql_db_schema</span>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="go">CREATE TABLE &quot;Employee&quot; (</span>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="go">    &quot;EmployeeId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="go">    &quot;LastName&quot; NVARCHAR(20) NOT NULL, </span>
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="go">    &quot;FirstName&quot; NVARCHAR(20) NOT NULL, </span>
+</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="go">    &quot;Title&quot; NVARCHAR(30), </span>
+</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="go">    &quot;ReportsTo&quot; INTEGER, </span>
+</span><span id="__span-9-30"><a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="go">    &quot;BirthDate&quot; DATETIME, </span>
+</span><span id="__span-9-31"><a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="go">    &quot;HireDate&quot; DATETIME, </span>
+</span><span id="__span-9-32"><a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="go">    &quot;Address&quot; NVARCHAR(70), </span>
+</span><span id="__span-9-33"><a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="go">    &quot;City&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-34"><a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="go">    &quot;State&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-35"><a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="go">    &quot;Country&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-36"><a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="go">    &quot;PostalCode&quot; NVARCHAR(10), </span>
+</span><span id="__span-9-37"><a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="go">    &quot;Phone&quot; NVARCHAR(24), </span>
+</span><span id="__span-9-38"><a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="go">    &quot;Fax&quot; NVARCHAR(24), </span>
+</span><span id="__span-9-39"><a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a><span class="go">    &quot;Email&quot; NVARCHAR(60), </span>
+</span><span id="__span-9-40"><a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a><span class="go">    PRIMARY KEY (&quot;EmployeeId&quot;), </span>
+</span><span id="__span-9-41"><a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="go">    FOREIGN KEY(&quot;ReportsTo&quot;) REFERENCES &quot;Employee&quot; (&quot;EmployeeId&quot;)</span>
+</span><span id="__span-9-42"><a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="go">)</span>
+</span><span id="__span-9-43"><a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a>
+</span><span id="__span-9-44"><a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a><span class="go">/*</span>
+</span><span id="__span-9-45"><a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a><span class="go">3 rows from Employee table:</span>
+</span><span id="__span-9-46"><a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="go">EmployeeId  LastName    FirstName   Title   ReportsTo   BirthDate   HireDate    Address City    State   Country PostalCode  Phone   Fax Email</span>
+</span><span id="__span-9-47"><a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="go">1   Adams   Andrew  General Manager None    1962-02-18 00:00:00 2002-08-14 00:00:00 11120 Jasper Ave NW Edmonton    AB  Canada  T5K 2N1 +1 (780) 428-9482   +1 (780) 428-3457   andrew@chinookcorp.com</span>
+</span><span id="__span-9-48"><a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a><span class="go">2   Edwards Nancy   Sales Manager   1   1958-12-08 00:00:00 2002-05-01 00:00:00 825 8 Ave SW    Calgary AB  Canada  T2P 2T3 +1 (403) 262-3443   +1 (403) 262-3322   nancy@chinookcorp.com</span>
+</span><span id="__span-9-49"><a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a><span class="go">3   Peacock Jane    Sales Support Agent 2   1973-08-29 00:00:00 2002-04-01 00:00:00 1111 6 Ave SW   Calgary AB  Canada  T2P 5M5 +1 (403) 262-3443   +1 (403) 262-6712   jane@chinookcorp.com</span>
+</span><span id="__span-9-50"><a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a><span class="go">*/</span>
+</span><span id="__span-9-51"><a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a>
+</span><span id="__span-9-52"><a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a>
+</span><span id="__span-9-53"><a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="go">CREATE TABLE &quot;Invoice&quot; (</span>
+</span><span id="__span-9-54"><a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a><span class="go">    &quot;InvoiceId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-55"><a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a><span class="go">    &quot;CustomerId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-56"><a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a><span class="go">    &quot;InvoiceDate&quot; DATETIME NOT NULL, </span>
+</span><span id="__span-9-57"><a id="__codelineno-9-57" name="__codelineno-9-57" href="#__codelineno-9-57"></a><span class="go">    &quot;BillingAddress&quot; NVARCHAR(70), </span>
+</span><span id="__span-9-58"><a id="__codelineno-9-58" name="__codelineno-9-58" href="#__codelineno-9-58"></a><span class="go">    &quot;BillingCity&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-59"><a id="__codelineno-9-59" name="__codelineno-9-59" href="#__codelineno-9-59"></a><span class="go">    &quot;BillingState&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-60"><a id="__codelineno-9-60" name="__codelineno-9-60" href="#__codelineno-9-60"></a><span class="go">    &quot;BillingCountry&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-61"><a id="__codelineno-9-61" name="__codelineno-9-61" href="#__codelineno-9-61"></a><span class="go">    &quot;BillingPostalCode&quot; NVARCHAR(10), </span>
+</span><span id="__span-9-62"><a id="__codelineno-9-62" name="__codelineno-9-62" href="#__codelineno-9-62"></a><span class="go">    &quot;Total&quot; NUMERIC(10, 2) NOT NULL, </span>
+</span><span id="__span-9-63"><a id="__codelineno-9-63" name="__codelineno-9-63" href="#__codelineno-9-63"></a><span class="go">    PRIMARY KEY (&quot;InvoiceId&quot;), </span>
+</span><span id="__span-9-64"><a id="__codelineno-9-64" name="__codelineno-9-64" href="#__codelineno-9-64"></a><span class="go">    FOREIGN KEY(&quot;CustomerId&quot;) REFERENCES &quot;Customer&quot; (&quot;CustomerId&quot;)</span>
+</span><span id="__span-9-65"><a id="__codelineno-9-65" name="__codelineno-9-65" href="#__codelineno-9-65"></a><span class="go">)</span>
+</span><span id="__span-9-66"><a id="__codelineno-9-66" name="__codelineno-9-66" href="#__codelineno-9-66"></a>
+</span><span id="__span-9-67"><a id="__codelineno-9-67" name="__codelineno-9-67" href="#__codelineno-9-67"></a><span class="go">/*</span>
+</span><span id="__span-9-68"><a id="__codelineno-9-68" name="__codelineno-9-68" href="#__codelineno-9-68"></a><span class="go">3 rows from Invoice table:</span>
+</span><span id="__span-9-69"><a id="__codelineno-9-69" name="__codelineno-9-69" href="#__codelineno-9-69"></a><span class="go">InvoiceId   CustomerId  InvoiceDate BillingAddress  BillingCity BillingState    BillingCountry  BillingPostalCode   Total</span>
+</span><span id="__span-9-70"><a id="__codelineno-9-70" name="__codelineno-9-70" href="#__codelineno-9-70"></a><span class="go">1   2   2009-01-01 00:00:00 Theodor-Heuss-Straße 34 Stuttgart   None    Germany 70174   1.98</span>
+</span><span id="__span-9-71"><a id="__codelineno-9-71" name="__codelineno-9-71" href="#__codelineno-9-71"></a><span class="go">2   4   2009-01-02 00:00:00 Ullevålsveien 14    Oslo    None    Norway  0171    3.96</span>
+</span><span id="__span-9-72"><a id="__codelineno-9-72" name="__codelineno-9-72" href="#__codelineno-9-72"></a><span class="go">3   8   2009-01-03 00:00:00 Grétrystraat 63 Brussels    None    Belgium 1000    5.94</span>
+</span><span id="__span-9-73"><a id="__codelineno-9-73" name="__codelineno-9-73" href="#__codelineno-9-73"></a><span class="go">*/</span>
+</span><span id="__span-9-74"><a id="__codelineno-9-74" name="__codelineno-9-74" href="#__codelineno-9-74"></a>
+</span><span id="__span-9-75"><a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a>
+</span><span id="__span-9-76"><a id="__codelineno-9-76" name="__codelineno-9-76" href="#__codelineno-9-76"></a><span class="go">CREATE TABLE &quot;InvoiceLine&quot; (</span>
+</span><span id="__span-9-77"><a id="__codelineno-9-77" name="__codelineno-9-77" href="#__codelineno-9-77"></a><span class="go">    &quot;InvoiceLineId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-78"><a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a><span class="go">    &quot;InvoiceId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-79"><a id="__codelineno-9-79" name="__codelineno-9-79" href="#__codelineno-9-79"></a><span class="go">    &quot;TrackId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-80"><a id="__codelineno-9-80" name="__codelineno-9-80" href="#__codelineno-9-80"></a><span class="go">    &quot;UnitPrice&quot; NUMERIC(10, 2) NOT NULL, </span>
+</span><span id="__span-9-81"><a id="__codelineno-9-81" name="__codelineno-9-81" href="#__codelineno-9-81"></a><span class="go">    &quot;Quantity&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-82"><a id="__codelineno-9-82" name="__codelineno-9-82" href="#__codelineno-9-82"></a><span class="go">    PRIMARY KEY (&quot;InvoiceLineId&quot;), </span>
+</span><span id="__span-9-83"><a id="__codelineno-9-83" name="__codelineno-9-83" href="#__codelineno-9-83"></a><span class="go">    FOREIGN KEY(&quot;TrackId&quot;) REFERENCES &quot;Track&quot; (&quot;TrackId&quot;), </span>
+</span><span id="__span-9-84"><a id="__codelineno-9-84" name="__codelineno-9-84" href="#__codelineno-9-84"></a><span class="go">    FOREIGN KEY(&quot;InvoiceId&quot;) REFERENCES &quot;Invoice&quot; (&quot;InvoiceId&quot;)</span>
+</span><span id="__span-9-85"><a id="__codelineno-9-85" name="__codelineno-9-85" href="#__codelineno-9-85"></a><span class="go">)</span>
+</span><span id="__span-9-86"><a id="__codelineno-9-86" name="__codelineno-9-86" href="#__codelineno-9-86"></a>
+</span><span id="__span-9-87"><a id="__codelineno-9-87" name="__codelineno-9-87" href="#__codelineno-9-87"></a><span class="go">/*</span>
+</span><span id="__span-9-88"><a id="__codelineno-9-88" name="__codelineno-9-88" href="#__codelineno-9-88"></a><span class="go">3 rows from InvoiceLine table:</span>
+</span><span id="__span-9-89"><a id="__codelineno-9-89" name="__codelineno-9-89" href="#__codelineno-9-89"></a><span class="go">InvoiceLineId   InvoiceId   TrackId UnitPrice   Quantity</span>
+</span><span id="__span-9-90"><a id="__codelineno-9-90" name="__codelineno-9-90" href="#__codelineno-9-90"></a><span class="go">1   1   2   0.99    1</span>
+</span><span id="__span-9-91"><a id="__codelineno-9-91" name="__codelineno-9-91" href="#__codelineno-9-91"></a><span class="go">2   1   4   0.99    1</span>
+</span><span id="__span-9-92"><a id="__codelineno-9-92" name="__codelineno-9-92" href="#__codelineno-9-92"></a><span class="go">3   2   6   0.99    1</span>
+</span><span id="__span-9-93"><a id="__codelineno-9-93" name="__codelineno-9-93" href="#__codelineno-9-93"></a><span class="go">*/</span>
+</span><span id="__span-9-94"><a id="__codelineno-9-94" name="__codelineno-9-94" href="#__codelineno-9-94"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-9-95"><a id="__codelineno-9-95" name="__codelineno-9-95" href="#__codelineno-9-95"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-9-96"><a id="__codelineno-9-96" name="__codelineno-9-96" href="#__codelineno-9-96"></a><span class="go">  sql_db_schema (call_dHE5FKSycFhYIkdPKtpEk9rM)</span>
+</span><span id="__span-9-97"><a id="__codelineno-9-97" name="__codelineno-9-97" href="#__codelineno-9-97"></a><span class="go"> Call ID: call_dHE5FKSycFhYIkdPKtpEk9rM</span>
+</span><span id="__span-9-98"><a id="__codelineno-9-98" name="__codelineno-9-98" href="#__codelineno-9-98"></a><span class="go">  Args:</span>
+</span><span id="__span-9-99"><a id="__codelineno-9-99" name="__codelineno-9-99" href="#__codelineno-9-99"></a><span class="go">    table_names: Customer</span>
+</span><span id="__span-9-100"><a id="__codelineno-9-100" name="__codelineno-9-100" href="#__codelineno-9-100"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-9-101"><a id="__codelineno-9-101" name="__codelineno-9-101" href="#__codelineno-9-101"></a><span class="go">Name: sql_db_schema</span>
+</span><span id="__span-9-102"><a id="__codelineno-9-102" name="__codelineno-9-102" href="#__codelineno-9-102"></a>
+</span><span id="__span-9-103"><a id="__codelineno-9-103" name="__codelineno-9-103" href="#__codelineno-9-103"></a>
+</span><span id="__span-9-104"><a id="__codelineno-9-104" name="__codelineno-9-104" href="#__codelineno-9-104"></a><span class="go">CREATE TABLE &quot;Customer&quot; (</span>
+</span><span id="__span-9-105"><a id="__codelineno-9-105" name="__codelineno-9-105" href="#__codelineno-9-105"></a><span class="go">    &quot;CustomerId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-9-106"><a id="__codelineno-9-106" name="__codelineno-9-106" href="#__codelineno-9-106"></a><span class="go">    &quot;FirstName&quot; NVARCHAR(40) NOT NULL, </span>
+</span><span id="__span-9-107"><a id="__codelineno-9-107" name="__codelineno-9-107" href="#__codelineno-9-107"></a><span class="go">    &quot;LastName&quot; NVARCHAR(20) NOT NULL, </span>
+</span><span id="__span-9-108"><a id="__codelineno-9-108" name="__codelineno-9-108" href="#__codelineno-9-108"></a><span class="go">    &quot;Company&quot; NVARCHAR(80), </span>
+</span><span id="__span-9-109"><a id="__codelineno-9-109" name="__codelineno-9-109" href="#__codelineno-9-109"></a><span class="go">    &quot;Address&quot; NVARCHAR(70), </span>
+</span><span id="__span-9-110"><a id="__codelineno-9-110" name="__codelineno-9-110" href="#__codelineno-9-110"></a><span class="go">    &quot;City&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-111"><a id="__codelineno-9-111" name="__codelineno-9-111" href="#__codelineno-9-111"></a><span class="go">    &quot;State&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-112"><a id="__codelineno-9-112" name="__codelineno-9-112" href="#__codelineno-9-112"></a><span class="go">    &quot;Country&quot; NVARCHAR(40), </span>
+</span><span id="__span-9-113"><a id="__codelineno-9-113" name="__codelineno-9-113" href="#__codelineno-9-113"></a><span class="go">    &quot;PostalCode&quot; NVARCHAR(10), </span>
+</span><span id="__span-9-114"><a id="__codelineno-9-114" name="__codelineno-9-114" href="#__codelineno-9-114"></a><span class="go">    &quot;Phone&quot; NVARCHAR(24), </span>
+</span><span id="__span-9-115"><a id="__codelineno-9-115" name="__codelineno-9-115" href="#__codelineno-9-115"></a><span class="go">    &quot;Fax&quot; NVARCHAR(24), </span>
+</span><span id="__span-9-116"><a id="__codelineno-9-116" name="__codelineno-9-116" href="#__codelineno-9-116"></a><span class="go">    &quot;Email&quot; NVARCHAR(60) NOT NULL, </span>
+</span><span id="__span-9-117"><a id="__codelineno-9-117" name="__codelineno-9-117" href="#__codelineno-9-117"></a><span class="go">    &quot;SupportRepId&quot; INTEGER, </span>
+</span><span id="__span-9-118"><a id="__codelineno-9-118" name="__codelineno-9-118" href="#__codelineno-9-118"></a><span class="go">    PRIMARY KEY (&quot;CustomerId&quot;), </span>
+</span><span id="__span-9-119"><a id="__codelineno-9-119" name="__codelineno-9-119" href="#__codelineno-9-119"></a><span class="go">    FOREIGN KEY(&quot;SupportRepId&quot;) REFERENCES &quot;Employee&quot; (&quot;EmployeeId&quot;)</span>
+</span><span id="__span-9-120"><a id="__codelineno-9-120" name="__codelineno-9-120" href="#__codelineno-9-120"></a><span class="go">)</span>
+</span><span id="__span-9-121"><a id="__codelineno-9-121" name="__codelineno-9-121" href="#__codelineno-9-121"></a>
+</span><span id="__span-9-122"><a id="__codelineno-9-122" name="__codelineno-9-122" href="#__codelineno-9-122"></a><span class="go">/*</span>
+</span><span id="__span-9-123"><a id="__codelineno-9-123" name="__codelineno-9-123" href="#__codelineno-9-123"></a><span class="go">3 rows from Customer table:</span>
+</span><span id="__span-9-124"><a id="__codelineno-9-124" name="__codelineno-9-124" href="#__codelineno-9-124"></a><span class="go">CustomerId  FirstName   LastName    Company Address City    State   Country PostalCode  Phone   Fax Email   SupportRepId</span>
+</span><span id="__span-9-125"><a id="__codelineno-9-125" name="__codelineno-9-125" href="#__codelineno-9-125"></a><span class="go">1   Luís    Gonçalves   Embraer - Empresa Brasileira de Aeronáutica S.A.    Av. Brigadeiro Faria Lima, 2170 São José dos Campos SP  Brazil  12227-000   +55 (12) 3923-5555  +55 (12) 3923-5566  luisg@embraer.com.br    3</span>
+</span><span id="__span-9-126"><a id="__codelineno-9-126" name="__codelineno-9-126" href="#__codelineno-9-126"></a><span class="go">2   Leonie  Köhler  None    Theodor-Heuss-Straße 34 Stuttgart   None    Germany 70174   +49 0711 2842222    None    leonekohler@surfeu.de   5</span>
+</span><span id="__span-9-127"><a id="__codelineno-9-127" name="__codelineno-9-127" href="#__codelineno-9-127"></a><span class="go">3   François    Tremblay    None    1498 rue Bélanger   Montréal    QC  Canada  H2G 1A7 +1 (514) 721-4711   None    ftremblay@gmail.com 3</span>
+</span><span id="__span-9-128"><a id="__codelineno-9-128" name="__codelineno-9-128" href="#__codelineno-9-128"></a><span class="go">*/</span>
+</span><span id="__span-9-129"><a id="__codelineno-9-129" name="__codelineno-9-129" href="#__codelineno-9-129"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-9-130"><a id="__codelineno-9-130" name="__codelineno-9-130" href="#__codelineno-9-130"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-9-131"><a id="__codelineno-9-131" name="__codelineno-9-131" href="#__codelineno-9-131"></a><span class="go">  sql_db_query_checker (call_QPtWY5cUZWgWhr13Kz6eBJkU)</span>
+</span><span id="__span-9-132"><a id="__codelineno-9-132" name="__codelineno-9-132" href="#__codelineno-9-132"></a><span class="go"> Call ID: call_QPtWY5cUZWgWhr13Kz6eBJkU</span>
+</span><span id="__span-9-133"><a id="__codelineno-9-133" name="__codelineno-9-133" href="#__codelineno-9-133"></a><span class="go">  Args:</span>
+</span><span id="__span-9-134"><a id="__codelineno-9-134" name="__codelineno-9-134" href="#__codelineno-9-134"></a><span class="go">    query: SELECT e.EmployeeId, e.FirstName, e.LastName, SUM(i.Total) as TotalSales</span>
+</span><span id="__span-9-135"><a id="__codelineno-9-135" name="__codelineno-9-135" href="#__codelineno-9-135"></a><span class="go">FROM Employee e</span>
+</span><span id="__span-9-136"><a id="__codelineno-9-136" name="__codelineno-9-136" href="#__codelineno-9-136"></a><span class="go">JOIN Customer c ON e.EmployeeId = c.SupportRepId</span>
+</span><span id="__span-9-137"><a id="__codelineno-9-137" name="__codelineno-9-137" href="#__codelineno-9-137"></a><span class="go">JOIN Invoice i ON c.CustomerId = i.CustomerId</span>
+</span><span id="__span-9-138"><a id="__codelineno-9-138" name="__codelineno-9-138" href="#__codelineno-9-138"></a><span class="go">WHERE i.InvoiceDate BETWEEN &#39;2009-01-01&#39; AND &#39;2009-12-31&#39;</span>
+</span><span id="__span-9-139"><a id="__codelineno-9-139" name="__codelineno-9-139" href="#__codelineno-9-139"></a><span class="go">GROUP BY e.EmployeeId, e.FirstName, e.LastName</span>
+</span><span id="__span-9-140"><a id="__codelineno-9-140" name="__codelineno-9-140" href="#__codelineno-9-140"></a><span class="go">ORDER BY TotalSales DESC</span>
+</span><span id="__span-9-141"><a id="__codelineno-9-141" name="__codelineno-9-141" href="#__codelineno-9-141"></a><span class="go">LIMIT 1;</span>
+</span><span id="__span-9-142"><a id="__codelineno-9-142" name="__codelineno-9-142" href="#__codelineno-9-142"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-9-143"><a id="__codelineno-9-143" name="__codelineno-9-143" href="#__codelineno-9-143"></a><span class="go">Name: sql_db_query_checker</span>
+</span><span id="__span-9-144"><a id="__codelineno-9-144" name="__codelineno-9-144" href="#__codelineno-9-144"></a>
+</span><span id="__span-9-145"><a id="__codelineno-9-145" name="__codelineno-9-145" href="#__codelineno-9-145"></a><span class="go">\`\`\`sql</span>
+</span><span id="__span-9-146"><a id="__codelineno-9-146" name="__codelineno-9-146" href="#__codelineno-9-146"></a><span class="go">SELECT e.EmployeeId, e.FirstName, e.LastName, SUM(i.Total) as TotalSales</span>
+</span><span id="__span-9-147"><a id="__codelineno-9-147" name="__codelineno-9-147" href="#__codelineno-9-147"></a><span class="go">FROM Employee e</span>
+</span><span id="__span-9-148"><a id="__codelineno-9-148" name="__codelineno-9-148" href="#__codelineno-9-148"></a><span class="go">JOIN Customer c ON e.EmployeeId = c.SupportRepId</span>
+</span><span id="__span-9-149"><a id="__codelineno-9-149" name="__codelineno-9-149" href="#__codelineno-9-149"></a><span class="go">JOIN Invoice i ON c.CustomerId = i.CustomerId</span>
+</span><span id="__span-9-150"><a id="__codelineno-9-150" name="__codelineno-9-150" href="#__codelineno-9-150"></a><span class="go">WHERE i.InvoiceDate BETWEEN &#39;2009-01-01&#39; AND &#39;2009-12-31&#39;</span>
+</span><span id="__span-9-151"><a id="__codelineno-9-151" name="__codelineno-9-151" href="#__codelineno-9-151"></a><span class="go">GROUP BY e.EmployeeId, e.FirstName, e.LastName</span>
+</span><span id="__span-9-152"><a id="__codelineno-9-152" name="__codelineno-9-152" href="#__codelineno-9-152"></a><span class="go">ORDER BY TotalSales DESC</span>
+</span><span id="__span-9-153"><a id="__codelineno-9-153" name="__codelineno-9-153" href="#__codelineno-9-153"></a><span class="go">LIMIT 1;</span>
+</span><span id="__span-9-154"><a id="__codelineno-9-154" name="__codelineno-9-154" href="#__codelineno-9-154"></a><span class="go">\`\`\`</span>
+</span><span id="__span-9-155"><a id="__codelineno-9-155" name="__codelineno-9-155" href="#__codelineno-9-155"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-9-156"><a id="__codelineno-9-156" name="__codelineno-9-156" href="#__codelineno-9-156"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-9-157"><a id="__codelineno-9-157" name="__codelineno-9-157" href="#__codelineno-9-157"></a><span class="go">  sql_db_query (call_X747YMElSeY5D3CfhE6KzLUj)</span>
+</span><span id="__span-9-158"><a id="__codelineno-9-158" name="__codelineno-9-158" href="#__codelineno-9-158"></a><span class="go"> Call ID: call_X747YMElSeY5D3CfhE6KzLUj</span>
+</span><span id="__span-9-159"><a id="__codelineno-9-159" name="__codelineno-9-159" href="#__codelineno-9-159"></a><span class="go">  Args:</span>
+</span><span id="__span-9-160"><a id="__codelineno-9-160" name="__codelineno-9-160" href="#__codelineno-9-160"></a><span class="go">    query: SELECT e.EmployeeId, e.FirstName, e.LastName, SUM(i.Total) as TotalSales</span>
+</span><span id="__span-9-161"><a id="__codelineno-9-161" name="__codelineno-9-161" href="#__codelineno-9-161"></a><span class="go">FROM Employee e</span>
+</span><span id="__span-9-162"><a id="__codelineno-9-162" name="__codelineno-9-162" href="#__codelineno-9-162"></a><span class="go">JOIN Customer c ON e.EmployeeId = c.SupportRepId</span>
+</span><span id="__span-9-163"><a id="__codelineno-9-163" name="__codelineno-9-163" href="#__codelineno-9-163"></a><span class="go">JOIN Invoice i ON c.CustomerId = i.CustomerId</span>
+</span><span id="__span-9-164"><a id="__codelineno-9-164" name="__codelineno-9-164" href="#__codelineno-9-164"></a><span class="go">WHERE i.InvoiceDate BETWEEN &#39;2009-01-01&#39; AND &#39;2009-12-31&#39;</span>
+</span><span id="__span-9-165"><a id="__codelineno-9-165" name="__codelineno-9-165" href="#__codelineno-9-165"></a><span class="go">GROUP BY e.EmployeeId, e.FirstName, e.LastName</span>
+</span><span id="__span-9-166"><a id="__codelineno-9-166" name="__codelineno-9-166" href="#__codelineno-9-166"></a><span class="go">ORDER BY TotalSales DESC</span>
+</span><span id="__span-9-167"><a id="__codelineno-9-167" name="__codelineno-9-167" href="#__codelineno-9-167"></a><span class="go">LIMIT 1;</span>
+</span><span id="__span-9-168"><a id="__codelineno-9-168" name="__codelineno-9-168" href="#__codelineno-9-168"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-9-169"><a id="__codelineno-9-169" name="__codelineno-9-169" href="#__codelineno-9-169"></a><span class="go">Name: sql_db_query</span>
+</span><span id="__span-9-170"><a id="__codelineno-9-170" name="__codelineno-9-170" href="#__codelineno-9-170"></a>
+</span><span id="__span-9-171"><a id="__codelineno-9-171" name="__codelineno-9-171" href="#__codelineno-9-171"></a><span class="go">[(5, &#39;Steve&#39;, &#39;Johnson&#39;, 164.34)]</span>
+</span><span id="__span-9-172"><a id="__codelineno-9-172" name="__codelineno-9-172" href="#__codelineno-9-172"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-9-173"><a id="__codelineno-9-173" name="__codelineno-9-173" href="#__codelineno-9-173"></a>
+</span><span id="__span-9-174"><a id="__codelineno-9-174" name="__codelineno-9-174" href="#__codelineno-9-174"></a><span class="go">The sales agent who made the most in sales in 2009 was Steve Johnson, with total sales of 164.34.</span>
+</span></code></pre></div>
+This worked well enough: the agent correctly listed the tables, obtained the schemas, wrote a query, checked the query, and ran it to inform its final response.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can inspect all aspects of the above run, including steps taken, tools invoked, what prompts were seen by the LLM, and more in the <a href="https://smith.langchain.com/public/bd594960-73e3-474b-b6f2-db039d7c713a/r">LangSmith trace</a>.</p>
+</div>
+<h2 id="3-customizing-the-agent">3. Customizing the agent<a class="headerlink" href="#3-customizing-the-agent" title="Permanent link">&para;</a></h2>
+<p>The prebuilt agent lets us get started quickly, but at each step the agent has access to the full set of tools. Above, we relied on the system prompt to constrain its behavior— for example, we instructed the agent to always start with the "list tables" tool, and to always run a query-checker tool before executing the query.</p>
+<p>We can enforce a higher degree of control in LangGraph by customizing the agent. Below, we implement a simple ReAct-agent setup, with dedicated nodes for specific tool-calls. We will use the same <a href="../../concepts/low_level/#state">state</a> as the pre-built agent.</p>
+<p>We construct dedicated nodes for the following steps:</p>
+<ul>
+<li>Listing DB tables</li>
+<li>Calling the "get schema" tool</li>
+<li>Generating a query</li>
+<li>Checking the query</li>
+</ul>
+<p>Putting these steps in dedicated nodes lets us (1) force tool-calls when needed, and (2) customize the prompts associated with each step.</p>
+<p><sup><i>API Reference: <a href="https://python.langchain.com/api_reference/core/messages/langchain_core.messages.ai.AIMessage.html">AIMessage</a> | <a href="https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.config.RunnableConfig.html">RunnableConfig</a> | <a href="https://langchain-ai.github.io/langgraph/reference/constants/#langgraph.constants.END">END</a> | <a href="https://langchain-ai.github.io/langgraph/reference/constants/#langgraph.constants.START">START</a> | <a href="https://langchain-ai.github.io/langgraph/reference/graphs/#langgraph.graph.state.StateGraph">StateGraph</a> | <a href="https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.tool_node.ToolNode">ToolNode</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">AIMessage</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.runnables</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunnableConfig</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">END</span><span class="p">,</span> <span class="n">START</span><span class="p">,</span> <span class="n">MessagesState</span><span class="p">,</span> <span class="n">StateGraph</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolNode</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="n">get_schema_tool</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">tool</span> <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span> <span class="k">if</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;sql_db_schema&quot;</span><span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">get_schema_node</span> <span class="o">=</span> <span class="n">ToolNode</span><span class="p">([</span><span class="n">get_schema_tool</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;get_schema&quot;</span><span class="p">)</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="n">run_query_tool</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">tool</span> <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span> <span class="k">if</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;sql_db_query&quot;</span><span class="p">)</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="n">run_query_node</span> <span class="o">=</span> <span class="n">ToolNode</span><span class="p">([</span><span class="n">run_query_tool</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;run_query&quot;</span><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="c1"># Example: create a predetermined tool call</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="k">def</span><span class="w"> </span><span class="nf">list_tables</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">):</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    <span class="n">tool_call</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;sql_db_list_tables&quot;</span><span class="p">,</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>        <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{},</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;abc123&quot;</span><span class="p">,</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;tool_call&quot;</span><span class="p">,</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>    <span class="p">}</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>    <span class="n">tool_call_message</span> <span class="o">=</span> <span class="n">AIMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">tool_calls</span><span class="o">=</span><span class="p">[</span><span class="n">tool_call</span><span class="p">])</span>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>    <span class="n">list_tables_tool</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">tool</span> <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span> <span class="k">if</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;sql_db_list_tables&quot;</span><span class="p">)</span>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>    <span class="n">tool_message</span> <span class="o">=</span> <span class="n">list_tables_tool</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">tool_call</span><span class="p">)</span>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">AIMessage</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="n">tool_message</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>
+</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">tool_call_message</span><span class="p">,</span> <span class="n">tool_message</span><span class="p">,</span> <span class="n">response</span><span class="p">]}</span>
+</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>
+</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>
+</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="c1"># Example: force a model to create a tool call</span>
+</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="k">def</span><span class="w"> </span><span class="nf">call_get_schema</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">):</span>
+</span><span id="__span-10-34"><a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>    <span class="c1"># Note that LangChain enforces that all models accept `tool_choice=&quot;any&quot;`</span>
+</span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>    <span class="c1"># as well as `tool_choice=&lt;string name of tool&gt;`.</span>
+</span><span id="__span-10-36"><a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>    <span class="n">llm_with_tools</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">bind_tools</span><span class="p">([</span><span class="n">get_schema_tool</span><span class="p">],</span> <span class="n">tool_choice</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">)</span>
+</span><span id="__span-10-37"><a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">llm_with_tools</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">])</span>
+</span><span id="__span-10-38"><a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>
+</span><span id="__span-10-39"><a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>
+</span><span id="__span-10-40"><a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a>
+</span><span id="__span-10-41"><a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a>
+</span><span id="__span-10-42"><a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a><span class="n">generate_query_system_prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+</span><span id="__span-10-43"><a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a><span class="s2">You are an agent designed to interact with a SQL database.</span>
+</span><span id="__span-10-44"><a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="s2">Given an input question, create a syntactically correct </span><span class="si">{dialect}</span><span class="s2"> query to run,</span>
+</span><span id="__span-10-45"><a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a><span class="s2">then look at the results of the query and return the answer. Unless the user</span>
+</span><span id="__span-10-46"><a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="s2">specifies a specific number of examples they wish to obtain, always limit your</span>
+</span><span id="__span-10-47"><a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a><span class="s2">query to at most </span><span class="si">{top_k}</span><span class="s2"> results.</span>
+</span><span id="__span-10-48"><a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>
+</span><span id="__span-10-49"><a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a><span class="s2">You can order the results by a relevant column to return the most interesting</span>
+</span><span id="__span-10-50"><a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a><span class="s2">examples in the database. Never query for all the columns from a specific table,</span>
+</span><span id="__span-10-51"><a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a><span class="s2">only ask for the relevant columns given the question.</span>
+</span><span id="__span-10-52"><a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a>
+</span><span id="__span-10-53"><a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a><span class="s2">DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.</span>
+</span><span id="__span-10-54"><a id="__codelineno-10-54" name="__codelineno-10-54" href="#__codelineno-10-54"></a><span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="__span-10-55"><a id="__codelineno-10-55" name="__codelineno-10-55" href="#__codelineno-10-55"></a>    <span class="n">dialect</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">dialect</span><span class="p">,</span>
+</span><span id="__span-10-56"><a id="__codelineno-10-56" name="__codelineno-10-56" href="#__codelineno-10-56"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-10-57"><a id="__codelineno-10-57" name="__codelineno-10-57" href="#__codelineno-10-57"></a><span class="p">)</span>
+</span><span id="__span-10-58"><a id="__codelineno-10-58" name="__codelineno-10-58" href="#__codelineno-10-58"></a>
+</span><span id="__span-10-59"><a id="__codelineno-10-59" name="__codelineno-10-59" href="#__codelineno-10-59"></a>
+</span><span id="__span-10-60"><a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_query</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">):</span>
+</span><span id="__span-10-61"><a id="__codelineno-10-61" name="__codelineno-10-61" href="#__codelineno-10-61"></a>    <span class="n">system_message</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-10-62"><a id="__codelineno-10-62" name="__codelineno-10-62" href="#__codelineno-10-62"></a>        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+</span><span id="__span-10-63"><a id="__codelineno-10-63" name="__codelineno-10-63" href="#__codelineno-10-63"></a>        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">generate_query_system_prompt</span><span class="p">,</span>
+</span><span id="__span-10-64"><a id="__codelineno-10-64" name="__codelineno-10-64" href="#__codelineno-10-64"></a>    <span class="p">}</span>
+</span><span id="__span-10-65"><a id="__codelineno-10-65" name="__codelineno-10-65" href="#__codelineno-10-65"></a>    <span class="c1"># We do not force a tool call here, to allow the model to</span>
+</span><span id="__span-10-66"><a id="__codelineno-10-66" name="__codelineno-10-66" href="#__codelineno-10-66"></a>    <span class="c1"># respond naturally when it obtains the solution.</span>
+</span><span id="__span-10-67"><a id="__codelineno-10-67" name="__codelineno-10-67" href="#__codelineno-10-67"></a>    <span class="n">llm_with_tools</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">bind_tools</span><span class="p">([</span><span class="n">run_query_tool</span><span class="p">])</span>
+</span><span id="__span-10-68"><a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">llm_with_tools</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span><span class="n">system_message</span><span class="p">]</span> <span class="o">+</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">])</span>
+</span><span id="__span-10-69"><a id="__codelineno-10-69" name="__codelineno-10-69" href="#__codelineno-10-69"></a>
+</span><span id="__span-10-70"><a id="__codelineno-10-70" name="__codelineno-10-70" href="#__codelineno-10-70"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>
+</span><span id="__span-10-71"><a id="__codelineno-10-71" name="__codelineno-10-71" href="#__codelineno-10-71"></a>
+</span><span id="__span-10-72"><a id="__codelineno-10-72" name="__codelineno-10-72" href="#__codelineno-10-72"></a>
+</span><span id="__span-10-73"><a id="__codelineno-10-73" name="__codelineno-10-73" href="#__codelineno-10-73"></a><span class="n">check_query_system_prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+</span><span id="__span-10-74"><a id="__codelineno-10-74" name="__codelineno-10-74" href="#__codelineno-10-74"></a><span class="s2">You are a SQL expert with a strong attention to detail.</span>
+</span><span id="__span-10-75"><a id="__codelineno-10-75" name="__codelineno-10-75" href="#__codelineno-10-75"></a><span class="s2">Double check the </span><span class="si">{dialect}</span><span class="s2"> query for common mistakes, including:</span>
+</span><span id="__span-10-76"><a id="__codelineno-10-76" name="__codelineno-10-76" href="#__codelineno-10-76"></a><span class="s2">- Using NOT IN with NULL values</span>
+</span><span id="__span-10-77"><a id="__codelineno-10-77" name="__codelineno-10-77" href="#__codelineno-10-77"></a><span class="s2">- Using UNION when UNION ALL should have been used</span>
+</span><span id="__span-10-78"><a id="__codelineno-10-78" name="__codelineno-10-78" href="#__codelineno-10-78"></a><span class="s2">- Using BETWEEN for exclusive ranges</span>
+</span><span id="__span-10-79"><a id="__codelineno-10-79" name="__codelineno-10-79" href="#__codelineno-10-79"></a><span class="s2">- Data type mismatch in predicates</span>
+</span><span id="__span-10-80"><a id="__codelineno-10-80" name="__codelineno-10-80" href="#__codelineno-10-80"></a><span class="s2">- Properly quoting identifiers</span>
+</span><span id="__span-10-81"><a id="__codelineno-10-81" name="__codelineno-10-81" href="#__codelineno-10-81"></a><span class="s2">- Using the correct number of arguments for functions</span>
+</span><span id="__span-10-82"><a id="__codelineno-10-82" name="__codelineno-10-82" href="#__codelineno-10-82"></a><span class="s2">- Casting to the correct data type</span>
+</span><span id="__span-10-83"><a id="__codelineno-10-83" name="__codelineno-10-83" href="#__codelineno-10-83"></a><span class="s2">- Using the proper columns for joins</span>
+</span><span id="__span-10-84"><a id="__codelineno-10-84" name="__codelineno-10-84" href="#__codelineno-10-84"></a>
+</span><span id="__span-10-85"><a id="__codelineno-10-85" name="__codelineno-10-85" href="#__codelineno-10-85"></a><span class="s2">If there are any of the above mistakes, rewrite the query. If there are no mistakes,</span>
+</span><span id="__span-10-86"><a id="__codelineno-10-86" name="__codelineno-10-86" href="#__codelineno-10-86"></a><span class="s2">just reproduce the original query.</span>
+</span><span id="__span-10-87"><a id="__codelineno-10-87" name="__codelineno-10-87" href="#__codelineno-10-87"></a>
+</span><span id="__span-10-88"><a id="__codelineno-10-88" name="__codelineno-10-88" href="#__codelineno-10-88"></a><span class="s2">You will call the appropriate tool to execute the query after running this check.</span>
+</span><span id="__span-10-89"><a id="__codelineno-10-89" name="__codelineno-10-89" href="#__codelineno-10-89"></a><span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dialect</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
+</span><span id="__span-10-90"><a id="__codelineno-10-90" name="__codelineno-10-90" href="#__codelineno-10-90"></a>
+</span><span id="__span-10-91"><a id="__codelineno-10-91" name="__codelineno-10-91" href="#__codelineno-10-91"></a>
+</span><span id="__span-10-92"><a id="__codelineno-10-92" name="__codelineno-10-92" href="#__codelineno-10-92"></a><span class="k">def</span><span class="w"> </span><span class="nf">check_query</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">):</span>
+</span><span id="__span-10-93"><a id="__codelineno-10-93" name="__codelineno-10-93" href="#__codelineno-10-93"></a>    <span class="n">system_message</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-10-94"><a id="__codelineno-10-94" name="__codelineno-10-94" href="#__codelineno-10-94"></a>        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+</span><span id="__span-10-95"><a id="__codelineno-10-95" name="__codelineno-10-95" href="#__codelineno-10-95"></a>        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">check_query_system_prompt</span><span class="p">,</span>
+</span><span id="__span-10-96"><a id="__codelineno-10-96" name="__codelineno-10-96" href="#__codelineno-10-96"></a>    <span class="p">}</span>
+</span><span id="__span-10-97"><a id="__codelineno-10-97" name="__codelineno-10-97" href="#__codelineno-10-97"></a>
+</span><span id="__span-10-98"><a id="__codelineno-10-98" name="__codelineno-10-98" href="#__codelineno-10-98"></a>    <span class="c1"># Generate an artificial user message to check</span>
+</span><span id="__span-10-99"><a id="__codelineno-10-99" name="__codelineno-10-99" href="#__codelineno-10-99"></a>    <span class="n">tool_call</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-10-100"><a id="__codelineno-10-100" name="__codelineno-10-100" href="#__codelineno-10-100"></a>    <span class="n">user_message</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;query&quot;</span><span class="p">]}</span>
+</span><span id="__span-10-101"><a id="__codelineno-10-101" name="__codelineno-10-101" href="#__codelineno-10-101"></a>    <span class="n">llm_with_tools</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">bind_tools</span><span class="p">([</span><span class="n">run_query_tool</span><span class="p">],</span> <span class="n">tool_choice</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">)</span>
+</span><span id="__span-10-102"><a id="__codelineno-10-102" name="__codelineno-10-102" href="#__codelineno-10-102"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">llm_with_tools</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span><span class="n">system_message</span><span class="p">,</span> <span class="n">user_message</span><span class="p">])</span>
+</span><span id="__span-10-103"><a id="__codelineno-10-103" name="__codelineno-10-103" href="#__codelineno-10-103"></a>    <span class="n">response</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+</span><span id="__span-10-104"><a id="__codelineno-10-104" name="__codelineno-10-104" href="#__codelineno-10-104"></a>
+</span><span id="__span-10-105"><a id="__codelineno-10-105" name="__codelineno-10-105" href="#__codelineno-10-105"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>
+</span></code></pre></div>
+<p>Finally, we assemble these steps into a workflow using the Graph API. We define a <a href="../../concepts/low_level/#conditional-edges">conditional edge</a> at the query generation step that will route to the query checker if a query is generated, or end if there are no tool calls present, such that the LLM has delivered a response to the query.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">should_continue</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Literal</span><span class="p">[</span><span class="n">END</span><span class="p">,</span> <span class="s2">&quot;check_query&quot;</span><span class="p">]:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="n">messages</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">last_message</span> <span class="o">=</span> <span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">last_message</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">:</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>        <span class="k">return</span> <span class="n">END</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="k">return</span> <span class="s2">&quot;check_query&quot;</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="n">builder</span> <span class="o">=</span> <span class="n">StateGraph</span><span class="p">(</span><span class="n">MessagesState</span><span class="p">)</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">list_tables</span><span class="p">)</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">call_get_schema</span><span class="p">)</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">get_schema_node</span><span class="p">,</span> <span class="s2">&quot;get_schema&quot;</span><span class="p">)</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">generate_query</span><span class="p">)</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">check_query</span><span class="p">)</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">run_query_node</span><span class="p">,</span> <span class="s2">&quot;run_query&quot;</span><span class="p">)</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">START</span><span class="p">,</span> <span class="s2">&quot;list_tables&quot;</span><span class="p">)</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;list_tables&quot;</span><span class="p">,</span> <span class="s2">&quot;call_get_schema&quot;</span><span class="p">)</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;call_get_schema&quot;</span><span class="p">,</span> <span class="s2">&quot;get_schema&quot;</span><span class="p">)</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;get_schema&quot;</span><span class="p">,</span> <span class="s2">&quot;generate_query&quot;</span><span class="p">)</span>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_conditional_edges</span><span class="p">(</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>    <span class="s2">&quot;generate_query&quot;</span><span class="p">,</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>    <span class="n">should_continue</span><span class="p">,</span>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="p">)</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;check_query&quot;</span><span class="p">,</span> <span class="s2">&quot;run_query&quot;</span><span class="p">)</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;run_query&quot;</span><span class="p">,</span> <span class="s2">&quot;generate_query&quot;</span><span class="p">)</span>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+</span></code></pre></div>
+<p>We visualize the application below:</p>
+<p><sup><i>API Reference: <a href="https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.graph.CurveStyle.html">CurveStyle</a> | <a href="https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.graph.MermaidDrawMethod.html">MermaidDrawMethod</a> | <a href="https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.graph.NodeStyles.html">NodeStyles</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.runnables.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">CurveStyle</span><span class="p">,</span> <span class="n">MermaidDrawMethod</span><span class="p">,</span> <span class="n">NodeStyles</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">get_graph</span><span class="p">()</span><span class="o">.</span><span class="n">draw_mermaid_png</span><span class="p">()))</span>
+</span></code></pre></div>
+<p>
+<img src="data:image/png;base64,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" />
+</p>
+
+<p>We can now invoke the graph exactly as before:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;Which sales agent made the most in sales in 2009?&quot;</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">question</span><span class="p">}]},</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">,</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="p">):</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="n">step</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pretty_print</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="go">Which sales agent made the most in sales in 2009?</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="go">Available tables: Album, Artist, Customer, Employee, Genre, Invoice, InvoiceLine, MediaType, Playlist, PlaylistTrack, Track</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="go">  sql_db_schema (call_rMs3sF1HVcAGggGf89ZNvtLE)</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="go"> Call ID: call_rMs3sF1HVcAGggGf89ZNvtLE</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="go">  Args:</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="go">    table_names: Employee,Invoice,Customer</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="go">Name: sql_db_schema</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="go">CREATE TABLE &quot;Customer&quot; (</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="go">    &quot;CustomerId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="go">    &quot;FirstName&quot; NVARCHAR(40) NOT NULL, </span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="go">    &quot;LastName&quot; NVARCHAR(20) NOT NULL, </span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="go">    &quot;Company&quot; NVARCHAR(80), </span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="go">    &quot;Address&quot; NVARCHAR(70), </span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="go">    &quot;City&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="go">    &quot;State&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="go">    &quot;Country&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="go">    &quot;PostalCode&quot; NVARCHAR(10), </span>
+</span><span id="__span-14-27"><a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a><span class="go">    &quot;Phone&quot; NVARCHAR(24), </span>
+</span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="go">    &quot;Fax&quot; NVARCHAR(24), </span>
+</span><span id="__span-14-29"><a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="go">    &quot;Email&quot; NVARCHAR(60) NOT NULL, </span>
+</span><span id="__span-14-30"><a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="go">    &quot;SupportRepId&quot; INTEGER, </span>
+</span><span id="__span-14-31"><a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a><span class="go">    PRIMARY KEY (&quot;CustomerId&quot;), </span>
+</span><span id="__span-14-32"><a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a><span class="go">    FOREIGN KEY(&quot;SupportRepId&quot;) REFERENCES &quot;Employee&quot; (&quot;EmployeeId&quot;)</span>
+</span><span id="__span-14-33"><a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a><span class="go">)</span>
+</span><span id="__span-14-34"><a id="__codelineno-14-34" name="__codelineno-14-34" href="#__codelineno-14-34"></a>
+</span><span id="__span-14-35"><a id="__codelineno-14-35" name="__codelineno-14-35" href="#__codelineno-14-35"></a><span class="go">/*</span>
+</span><span id="__span-14-36"><a id="__codelineno-14-36" name="__codelineno-14-36" href="#__codelineno-14-36"></a><span class="go">3 rows from Customer table:</span>
+</span><span id="__span-14-37"><a id="__codelineno-14-37" name="__codelineno-14-37" href="#__codelineno-14-37"></a><span class="go">CustomerId  FirstName   LastName    Company Address City    State   Country PostalCode  Phone   Fax Email   SupportRepId</span>
+</span><span id="__span-14-38"><a id="__codelineno-14-38" name="__codelineno-14-38" href="#__codelineno-14-38"></a><span class="go">1   Luís    Gonçalves   Embraer - Empresa Brasileira de Aeronáutica S.A.    Av. Brigadeiro Faria Lima, 2170 São José dos Campos SP  Brazil  12227-000   +55 (12) 3923-5555  +55 (12) 3923-5566  luisg@embraer.com.br    3</span>
+</span><span id="__span-14-39"><a id="__codelineno-14-39" name="__codelineno-14-39" href="#__codelineno-14-39"></a><span class="go">2   Leonie  Köhler  None    Theodor-Heuss-Straße 34 Stuttgart   None    Germany 70174   +49 0711 2842222    None    leonekohler@surfeu.de   5</span>
+</span><span id="__span-14-40"><a id="__codelineno-14-40" name="__codelineno-14-40" href="#__codelineno-14-40"></a><span class="go">3   François    Tremblay    None    1498 rue Bélanger   Montréal    QC  Canada  H2G 1A7 +1 (514) 721-4711   None    ftremblay@gmail.com 3</span>
+</span><span id="__span-14-41"><a id="__codelineno-14-41" name="__codelineno-14-41" href="#__codelineno-14-41"></a><span class="go">*/</span>
+</span><span id="__span-14-42"><a id="__codelineno-14-42" name="__codelineno-14-42" href="#__codelineno-14-42"></a>
+</span><span id="__span-14-43"><a id="__codelineno-14-43" name="__codelineno-14-43" href="#__codelineno-14-43"></a>
+</span><span id="__span-14-44"><a id="__codelineno-14-44" name="__codelineno-14-44" href="#__codelineno-14-44"></a><span class="go">CREATE TABLE &quot;Employee&quot; (</span>
+</span><span id="__span-14-45"><a id="__codelineno-14-45" name="__codelineno-14-45" href="#__codelineno-14-45"></a><span class="go">    &quot;EmployeeId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-14-46"><a id="__codelineno-14-46" name="__codelineno-14-46" href="#__codelineno-14-46"></a><span class="go">    &quot;LastName&quot; NVARCHAR(20) NOT NULL, </span>
+</span><span id="__span-14-47"><a id="__codelineno-14-47" name="__codelineno-14-47" href="#__codelineno-14-47"></a><span class="go">    &quot;FirstName&quot; NVARCHAR(20) NOT NULL, </span>
+</span><span id="__span-14-48"><a id="__codelineno-14-48" name="__codelineno-14-48" href="#__codelineno-14-48"></a><span class="go">    &quot;Title&quot; NVARCHAR(30), </span>
+</span><span id="__span-14-49"><a id="__codelineno-14-49" name="__codelineno-14-49" href="#__codelineno-14-49"></a><span class="go">    &quot;ReportsTo&quot; INTEGER, </span>
+</span><span id="__span-14-50"><a id="__codelineno-14-50" name="__codelineno-14-50" href="#__codelineno-14-50"></a><span class="go">    &quot;BirthDate&quot; DATETIME, </span>
+</span><span id="__span-14-51"><a id="__codelineno-14-51" name="__codelineno-14-51" href="#__codelineno-14-51"></a><span class="go">    &quot;HireDate&quot; DATETIME, </span>
+</span><span id="__span-14-52"><a id="__codelineno-14-52" name="__codelineno-14-52" href="#__codelineno-14-52"></a><span class="go">    &quot;Address&quot; NVARCHAR(70), </span>
+</span><span id="__span-14-53"><a id="__codelineno-14-53" name="__codelineno-14-53" href="#__codelineno-14-53"></a><span class="go">    &quot;City&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-54"><a id="__codelineno-14-54" name="__codelineno-14-54" href="#__codelineno-14-54"></a><span class="go">    &quot;State&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-55"><a id="__codelineno-14-55" name="__codelineno-14-55" href="#__codelineno-14-55"></a><span class="go">    &quot;Country&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-56"><a id="__codelineno-14-56" name="__codelineno-14-56" href="#__codelineno-14-56"></a><span class="go">    &quot;PostalCode&quot; NVARCHAR(10), </span>
+</span><span id="__span-14-57"><a id="__codelineno-14-57" name="__codelineno-14-57" href="#__codelineno-14-57"></a><span class="go">    &quot;Phone&quot; NVARCHAR(24), </span>
+</span><span id="__span-14-58"><a id="__codelineno-14-58" name="__codelineno-14-58" href="#__codelineno-14-58"></a><span class="go">    &quot;Fax&quot; NVARCHAR(24), </span>
+</span><span id="__span-14-59"><a id="__codelineno-14-59" name="__codelineno-14-59" href="#__codelineno-14-59"></a><span class="go">    &quot;Email&quot; NVARCHAR(60), </span>
+</span><span id="__span-14-60"><a id="__codelineno-14-60" name="__codelineno-14-60" href="#__codelineno-14-60"></a><span class="go">    PRIMARY KEY (&quot;EmployeeId&quot;), </span>
+</span><span id="__span-14-61"><a id="__codelineno-14-61" name="__codelineno-14-61" href="#__codelineno-14-61"></a><span class="go">    FOREIGN KEY(&quot;ReportsTo&quot;) REFERENCES &quot;Employee&quot; (&quot;EmployeeId&quot;)</span>
+</span><span id="__span-14-62"><a id="__codelineno-14-62" name="__codelineno-14-62" href="#__codelineno-14-62"></a><span class="go">)</span>
+</span><span id="__span-14-63"><a id="__codelineno-14-63" name="__codelineno-14-63" href="#__codelineno-14-63"></a>
+</span><span id="__span-14-64"><a id="__codelineno-14-64" name="__codelineno-14-64" href="#__codelineno-14-64"></a><span class="go">/*</span>
+</span><span id="__span-14-65"><a id="__codelineno-14-65" name="__codelineno-14-65" href="#__codelineno-14-65"></a><span class="go">3 rows from Employee table:</span>
+</span><span id="__span-14-66"><a id="__codelineno-14-66" name="__codelineno-14-66" href="#__codelineno-14-66"></a><span class="go">EmployeeId  LastName    FirstName   Title   ReportsTo   BirthDate   HireDate    Address City    State   Country PostalCode  Phone   Fax Email</span>
+</span><span id="__span-14-67"><a id="__codelineno-14-67" name="__codelineno-14-67" href="#__codelineno-14-67"></a><span class="go">1   Adams   Andrew  General Manager None    1962-02-18 00:00:00 2002-08-14 00:00:00 11120 Jasper Ave NW Edmonton    AB  Canada  T5K 2N1 +1 (780) 428-9482   +1 (780) 428-3457   andrew@chinookcorp.com</span>
+</span><span id="__span-14-68"><a id="__codelineno-14-68" name="__codelineno-14-68" href="#__codelineno-14-68"></a><span class="go">2   Edwards Nancy   Sales Manager   1   1958-12-08 00:00:00 2002-05-01 00:00:00 825 8 Ave SW    Calgary AB  Canada  T2P 2T3 +1 (403) 262-3443   +1 (403) 262-3322   nancy@chinookcorp.com</span>
+</span><span id="__span-14-69"><a id="__codelineno-14-69" name="__codelineno-14-69" href="#__codelineno-14-69"></a><span class="go">3   Peacock Jane    Sales Support Agent 2   1973-08-29 00:00:00 2002-04-01 00:00:00 1111 6 Ave SW   Calgary AB  Canada  T2P 5M5 +1 (403) 262-3443   +1 (403) 262-6712   jane@chinookcorp.com</span>
+</span><span id="__span-14-70"><a id="__codelineno-14-70" name="__codelineno-14-70" href="#__codelineno-14-70"></a><span class="go">*/</span>
+</span><span id="__span-14-71"><a id="__codelineno-14-71" name="__codelineno-14-71" href="#__codelineno-14-71"></a>
+</span><span id="__span-14-72"><a id="__codelineno-14-72" name="__codelineno-14-72" href="#__codelineno-14-72"></a>
+</span><span id="__span-14-73"><a id="__codelineno-14-73" name="__codelineno-14-73" href="#__codelineno-14-73"></a><span class="go">CREATE TABLE &quot;Invoice&quot; (</span>
+</span><span id="__span-14-74"><a id="__codelineno-14-74" name="__codelineno-14-74" href="#__codelineno-14-74"></a><span class="go">    &quot;InvoiceId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-14-75"><a id="__codelineno-14-75" name="__codelineno-14-75" href="#__codelineno-14-75"></a><span class="go">    &quot;CustomerId&quot; INTEGER NOT NULL, </span>
+</span><span id="__span-14-76"><a id="__codelineno-14-76" name="__codelineno-14-76" href="#__codelineno-14-76"></a><span class="go">    &quot;InvoiceDate&quot; DATETIME NOT NULL, </span>
+</span><span id="__span-14-77"><a id="__codelineno-14-77" name="__codelineno-14-77" href="#__codelineno-14-77"></a><span class="go">    &quot;BillingAddress&quot; NVARCHAR(70), </span>
+</span><span id="__span-14-78"><a id="__codelineno-14-78" name="__codelineno-14-78" href="#__codelineno-14-78"></a><span class="go">    &quot;BillingCity&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-79"><a id="__codelineno-14-79" name="__codelineno-14-79" href="#__codelineno-14-79"></a><span class="go">    &quot;BillingState&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-80"><a id="__codelineno-14-80" name="__codelineno-14-80" href="#__codelineno-14-80"></a><span class="go">    &quot;BillingCountry&quot; NVARCHAR(40), </span>
+</span><span id="__span-14-81"><a id="__codelineno-14-81" name="__codelineno-14-81" href="#__codelineno-14-81"></a><span class="go">    &quot;BillingPostalCode&quot; NVARCHAR(10), </span>
+</span><span id="__span-14-82"><a id="__codelineno-14-82" name="__codelineno-14-82" href="#__codelineno-14-82"></a><span class="go">    &quot;Total&quot; NUMERIC(10, 2) NOT NULL, </span>
+</span><span id="__span-14-83"><a id="__codelineno-14-83" name="__codelineno-14-83" href="#__codelineno-14-83"></a><span class="go">    PRIMARY KEY (&quot;InvoiceId&quot;), </span>
+</span><span id="__span-14-84"><a id="__codelineno-14-84" name="__codelineno-14-84" href="#__codelineno-14-84"></a><span class="go">    FOREIGN KEY(&quot;CustomerId&quot;) REFERENCES &quot;Customer&quot; (&quot;CustomerId&quot;)</span>
+</span><span id="__span-14-85"><a id="__codelineno-14-85" name="__codelineno-14-85" href="#__codelineno-14-85"></a><span class="go">)</span>
+</span><span id="__span-14-86"><a id="__codelineno-14-86" name="__codelineno-14-86" href="#__codelineno-14-86"></a>
+</span><span id="__span-14-87"><a id="__codelineno-14-87" name="__codelineno-14-87" href="#__codelineno-14-87"></a><span class="go">/*</span>
+</span><span id="__span-14-88"><a id="__codelineno-14-88" name="__codelineno-14-88" href="#__codelineno-14-88"></a><span class="go">3 rows from Invoice table:</span>
+</span><span id="__span-14-89"><a id="__codelineno-14-89" name="__codelineno-14-89" href="#__codelineno-14-89"></a><span class="go">InvoiceId   CustomerId  InvoiceDate BillingAddress  BillingCity BillingState    BillingCountry  BillingPostalCode   Total</span>
+</span><span id="__span-14-90"><a id="__codelineno-14-90" name="__codelineno-14-90" href="#__codelineno-14-90"></a><span class="go">1   2   2009-01-01 00:00:00 Theodor-Heuss-Straße 34 Stuttgart   None    Germany 70174   1.98</span>
+</span><span id="__span-14-91"><a id="__codelineno-14-91" name="__codelineno-14-91" href="#__codelineno-14-91"></a><span class="go">2   4   2009-01-02 00:00:00 Ullevålsveien 14    Oslo    None    Norway  0171    3.96</span>
+</span><span id="__span-14-92"><a id="__codelineno-14-92" name="__codelineno-14-92" href="#__codelineno-14-92"></a><span class="go">3   8   2009-01-03 00:00:00 Grétrystraat 63 Brussels    None    Belgium 1000    5.94</span>
+</span><span id="__span-14-93"><a id="__codelineno-14-93" name="__codelineno-14-93" href="#__codelineno-14-93"></a><span class="go">*/</span>
+</span><span id="__span-14-94"><a id="__codelineno-14-94" name="__codelineno-14-94" href="#__codelineno-14-94"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-14-95"><a id="__codelineno-14-95" name="__codelineno-14-95" href="#__codelineno-14-95"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-14-96"><a id="__codelineno-14-96" name="__codelineno-14-96" href="#__codelineno-14-96"></a><span class="go">  sql_db_query (call_TQyoJSV78xEWHqc69PiYHjdS)</span>
+</span><span id="__span-14-97"><a id="__codelineno-14-97" name="__codelineno-14-97" href="#__codelineno-14-97"></a><span class="go"> Call ID: call_TQyoJSV78xEWHqc69PiYHjdS</span>
+</span><span id="__span-14-98"><a id="__codelineno-14-98" name="__codelineno-14-98" href="#__codelineno-14-98"></a><span class="go">  Args:</span>
+</span><span id="__span-14-99"><a id="__codelineno-14-99" name="__codelineno-14-99" href="#__codelineno-14-99"></a><span class="go">    query: SELECT e.FirstName, e.LastName, SUM(i.Total) as TotalSales</span>
+</span><span id="__span-14-100"><a id="__codelineno-14-100" name="__codelineno-14-100" href="#__codelineno-14-100"></a><span class="go">FROM Employee e</span>
+</span><span id="__span-14-101"><a id="__codelineno-14-101" name="__codelineno-14-101" href="#__codelineno-14-101"></a><span class="go">JOIN Customer c ON e.EmployeeId = c.SupportRepId</span>
+</span><span id="__span-14-102"><a id="__codelineno-14-102" name="__codelineno-14-102" href="#__codelineno-14-102"></a><span class="go">JOIN Invoice i ON c.CustomerId = i.CustomerId</span>
+</span><span id="__span-14-103"><a id="__codelineno-14-103" name="__codelineno-14-103" href="#__codelineno-14-103"></a><span class="go">WHERE strftime(&#39;%Y&#39;, i.InvoiceDate) = &#39;2009&#39;</span>
+</span><span id="__span-14-104"><a id="__codelineno-14-104" name="__codelineno-14-104" href="#__codelineno-14-104"></a><span class="go">GROUP BY e.EmployeeId</span>
+</span><span id="__span-14-105"><a id="__codelineno-14-105" name="__codelineno-14-105" href="#__codelineno-14-105"></a><span class="go">ORDER BY TotalSales DESC</span>
+</span><span id="__span-14-106"><a id="__codelineno-14-106" name="__codelineno-14-106" href="#__codelineno-14-106"></a><span class="go">LIMIT 1;</span>
+</span><span id="__span-14-107"><a id="__codelineno-14-107" name="__codelineno-14-107" href="#__codelineno-14-107"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-14-108"><a id="__codelineno-14-108" name="__codelineno-14-108" href="#__codelineno-14-108"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-14-109"><a id="__codelineno-14-109" name="__codelineno-14-109" href="#__codelineno-14-109"></a><span class="go">  sql_db_query (call_tSQOuxc7iQ1jvLzXSofCqK4V)</span>
+</span><span id="__span-14-110"><a id="__codelineno-14-110" name="__codelineno-14-110" href="#__codelineno-14-110"></a><span class="go"> Call ID: call_tSQOuxc7iQ1jvLzXSofCqK4V</span>
+</span><span id="__span-14-111"><a id="__codelineno-14-111" name="__codelineno-14-111" href="#__codelineno-14-111"></a><span class="go">  Args:</span>
+</span><span id="__span-14-112"><a id="__codelineno-14-112" name="__codelineno-14-112" href="#__codelineno-14-112"></a><span class="go">    query: SELECT e.FirstName, e.LastName, SUM(i.Total) as TotalSales</span>
+</span><span id="__span-14-113"><a id="__codelineno-14-113" name="__codelineno-14-113" href="#__codelineno-14-113"></a><span class="go">FROM Employee e</span>
+</span><span id="__span-14-114"><a id="__codelineno-14-114" name="__codelineno-14-114" href="#__codelineno-14-114"></a><span class="go">JOIN Customer c ON e.EmployeeId = c.SupportRepId</span>
+</span><span id="__span-14-115"><a id="__codelineno-14-115" name="__codelineno-14-115" href="#__codelineno-14-115"></a><span class="go">JOIN Invoice i ON c.CustomerId = i.CustomerId</span>
+</span><span id="__span-14-116"><a id="__codelineno-14-116" name="__codelineno-14-116" href="#__codelineno-14-116"></a><span class="go">WHERE strftime(&#39;%Y&#39;, i.InvoiceDate) = &#39;2009&#39;</span>
+</span><span id="__span-14-117"><a id="__codelineno-14-117" name="__codelineno-14-117" href="#__codelineno-14-117"></a><span class="go">GROUP BY e.EmployeeId</span>
+</span><span id="__span-14-118"><a id="__codelineno-14-118" name="__codelineno-14-118" href="#__codelineno-14-118"></a><span class="go">ORDER BY TotalSales DESC</span>
+</span><span id="__span-14-119"><a id="__codelineno-14-119" name="__codelineno-14-119" href="#__codelineno-14-119"></a><span class="go">LIMIT 1;</span>
+</span><span id="__span-14-120"><a id="__codelineno-14-120" name="__codelineno-14-120" href="#__codelineno-14-120"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-14-121"><a id="__codelineno-14-121" name="__codelineno-14-121" href="#__codelineno-14-121"></a><span class="go">Name: sql_db_query</span>
+</span><span id="__span-14-122"><a id="__codelineno-14-122" name="__codelineno-14-122" href="#__codelineno-14-122"></a>
+</span><span id="__span-14-123"><a id="__codelineno-14-123" name="__codelineno-14-123" href="#__codelineno-14-123"></a><span class="go">[(&#39;Steve&#39;, &#39;Johnson&#39;, 164.34)]</span>
+</span><span id="__span-14-124"><a id="__codelineno-14-124" name="__codelineno-14-124" href="#__codelineno-14-124"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-14-125"><a id="__codelineno-14-125" name="__codelineno-14-125" href="#__codelineno-14-125"></a>
+</span><span id="__span-14-126"><a id="__codelineno-14-126" name="__codelineno-14-126" href="#__codelineno-14-126"></a><span class="go">The sales agent who made the most in sales in 2009 was Steve Johnson, with total sales of 164.34.</span>
+</span></code></pre></div></p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>See <a href="https://smith.langchain.com/public/36a9ebbb-7cc4-4c54-b4db-cb12e124a649/r">LangSmith trace</a> for the above run.</p>
+</div>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>Check out <a href="https://docs.smith.langchain.com/evaluation/how_to_guides/langgraph">this guide</a> for evaluating LangGraph applications, including SQL agents like this one, using LangSmith.</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Please help us improve this page by adding to the discussion below.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../multi_agent/agent_supervisor/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Agent Supervisor">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Agent Supervisor
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../how-tos/run-id-langsmith/" class="md-footer__link md-footer__link--next" aria-label="Next: Graph runs in LangSmith">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Graph runs in LangSmith
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 LangChain, Inc | <a href="#__consent">Consent Preferences</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://langchain-ai.github.io/langgraphjs/" target="_blank" rel="noopener" title="langchain-ai.github.io" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M0 32v448h448V32zm243.8 349.4c0 43.6-25.6 63.5-62.9 63.5-33.7 0-53.2-17.4-63.2-38.5l34.3-20.7c6.6 11.7 12.6 21.6 27.1 21.6 13.8 0 22.6-5.4 22.6-26.5V237.7h42.1zm99.6 63.5c-39.1 0-64.4-18.6-76.7-43l34.3-19.8c9 14.7 20.8 25.6 41.5 25.6 17.4 0 28.6-8.7 28.6-20.8 0-14.4-11.4-19.5-30.7-28l-10.5-4.5c-30.4-12.9-50.5-29.2-50.5-63.5 0-31.6 24.1-55.6 61.6-55.6 26.8 0 46 9.3 59.8 33.7L368 290c-7.2-12.9-15-18-27.1-18-12.3 0-20.1 7.8-20.1 18 0 12.6 7.8 17.7 25.9 25.6l10.5 4.5c35.8 15.3 55.9 31 55.9 66.2 0 37.8-29.8 58.6-69.7 58.6"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/LangChainAI" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+
+  
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. <strong>Clicking "Accept" makes our documentation better. Thank you!</strong> ❤️</p>
+<input class="md-toggle" type="checkbox" id="__settings" checked>
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" checked>
+      <span class="task-list-indicator"></span>
+      Google Analytics
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">Reject</button>
+    
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["announce.dismiss", "content.code.annotate", "content.code.copy", "content.code.select", "content.tabs.link", "content.action.edit", "content.tooltips", "navigation.indexes", "navigation.footer", "navigation.instant", "navigation.sections", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.tabs", "navigation.top", "navigation.prune", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1493 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Build reliable, stateful AI systems, without giving up control">
+      
+      
+      
+        <link rel="canonical" href="https://langchain-ai.github.io/langgraph/how-tos/human_in_the_loop/wait-user-input/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../static/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+  
+    <title>How to wait for user input using interrupt</title>
+  
+
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Public+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Public Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/navigation_title_ovverides.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/version_admonitions.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/logos.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/sticky_navigation.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/agent_graph_widget.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-G8X6ELZYE0"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-G8X6ELZYE0",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-G8X6ELZYE0",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+    
+  <meta name="algolia-site-verification" content="165B7E7C89E49946" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Public+Sans&display=swap");
+    :root {
+      --md-primary-fg-color: #333333;
+      --md-accent-fg-color: #1E88E5;
+      --md-default-bg-color: #FFFFFF;
+      --md-default-fg-color: #333333;
+      --md-text-font-family: "Public Sans", sans-serif;
+    }
+
+    body {
+      font-family: var(--md-text-font-family);
+      background-color: var(--md-default-bg-color);
+      color: var(--md-default-fg-color);
+    }
+
+    .md-main {
+      background-color: #FFFFFF;
+    }
+
+    .md-footer {
+      background-color: #F5F5F5;
+      color: #666666;
+    }
+
+    .md-footer-meta {
+      background-color: #4d4d4d;
+    }
+
+    .md-typeset a {
+      color: #1E88E5;
+    }
+
+    .md-typeset a:hover {
+      color: #1565C0;
+    }
+
+    .md-nav__link--active,
+    .md-nav__link:active {
+      color: #1E88E5;
+    }
+
+    .md-search__input {
+      background-color: #F5F5F5;
+      color: #333333;
+    }
+
+    .md-search__input:hover,
+    .md-search__input:focus {
+      background-color: #EEEEEE;
+    }
+    /* Table of contents styles */
+    .md-nav--secondary .md-nav__item--active > .md-nav__link {
+      font-weight: bold;
+      color: var(--md-primary-fg-color);
+    }
+
+    .md-nav--secondary .md-nav__item--nested > .md-nav__link {
+      font-weight: normal;
+      color: var(--md-default-fg-color);
+    }
+
+    .md-nav--secondary .md-nav__item--nested > .md-nav__link::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: var(--md-default-fg-color);
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    [data-md-color-scheme="slate"] {
+      --md-default-bg-color: #1E1E1E;
+      --md-default-fg-color: #FFFFFF;
+      --md-accent-fg-color: #64B5F6;
+    }
+
+    [data-md-color-scheme="slate"] .md-main {
+      background-color: #1E1E1E;
+    }
+
+    [data-md-color-scheme="slate"] .navbar {
+      background-color: #1E1E1E;
+      color: #FFFFFF;
+      box-shadow: none;
+    }
+
+    [data-md-color-scheme="slate"] .md-footer {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-header {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-tabs {
+      background-color: #1E1E1E;
+      color: #BDBDBD;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__input {
+      background-color: #F5F5F5;
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__icon {
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-search__input::placeholder {
+      color: #333333;
+    }
+
+    [data-md-color-scheme="slate"] .md-footer-meta {
+      background-color: #4d4d4d;
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset a {
+      color: #64B5F6;
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset a:hover {
+      color: #90CAF9;
+    }
+
+    .notebook-links {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+    .notebook-links .md-content__button {
+      margin-left: 0.5rem;
+    }
+
+    [data-md-color-scheme=default] .logo-dark {
+      display: none !important;
+    }
+
+    [data-md-color-scheme=slate] .logo-light {
+      display: none !important;
+    }
+
+    .jupyter-wrapper .jp-CodeCell .jp-Cell-inputWrapper .jp-InputPrompt.jp-InputArea-prompt {
+      display: none !important;
+    }
+
+    .jupyter-wrapper .jp-Notebook .jp-Cell .jp-OutputPrompt {
+      display: none !important;
+    }
+
+    .md-banner {
+      background-color: #CFC9FA;
+      color: #000000;
+    }
+
+    .md-banner a {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .md-banner a:hover {
+      color: #000000;
+    }
+
+    .md-header__title {
+      visibility: hidden;
+    }
+
+    /* Dark mode banner links */
+    [data-md-color-scheme="slate"] .md-banner a {
+      color: #000000;
+    }
+
+    [data-md-color-scheme="slate"] .md-banner a:hover {
+      color: #000000;
+    }
+
+  </style>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-wait-for-user-input-using-interrupt" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<strong>We are growing and hiring for multiple roles for LangChain, LangGraph and LangSmith. <a href="https://www.langchain.com/careers" target="_blank" rel="noopener noreferrer"> Join our team!</a></strong>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="LangGraph" class="md-header__button md-logo" aria-label="LangGraph" data-md-component="logo">
+      
+  <img src="../../../static/wordmark_dark.svg" alt="logo" class="logo-light" />
+  <img src="../../../static/wordmark_light.svg" alt="logo" class="logo-dark" />
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LangGraph
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How to wait for user input using interrupt
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="gray"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent="white"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/langchain-ai/langgraph" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../tutorials/rag/langgraph_agentic_rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../concepts/faq/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Resources
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="LangGraph" class="md-nav__button md-logo" aria-label="LangGraph" data-md-component="logo">
+      
+  <img src="../../../static/wordmark_dark.svg" alt="logo" class="logo-light" />
+  <img src="../../../static/wordmark_light.svg" alt="logo" class="logo-dark" />
+
+    </a>
+    LangGraph
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/langchain-ai/langgraph" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../.." class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../reference/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../tutorials/rag/langgraph_agentic_rag/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../concepts/faq/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simple-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simple Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      Agent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interacting-with-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interacting with the Agent
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+<div class="notebook-links">
+  
+</div>
+
+
+                  
+
+
+  
+    <a href="https://github.com/langchain-ai/langgraph/edit/main/docs/docs/how-tos/human_in_the_loop/wait-user-input.ipynb" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="how-to-wait-for-user-input-using-interrupt">How to wait for user input using <code>interrupt</code><a class="headerlink" href="#how-to-wait-for-user-input-using-interrupt" title="Permanent link">&para;</a></h1>
+<div class="admonition tip">
+<p class="admonition-title">Prerequisites</p>
+<p>This guide assumes familiarity with the following concepts:</p>
+<ul>
+<li><a href="../../../concepts/human_in_the_loop">Human-in-the-loop</a></li>
+<li><a href="../../../concepts/low_level">LangGraph Glossary</a></li>
+</ul>
+</div>
+<p><strong>Human-in-the-loop (HIL)</strong> interactions are crucial for <a href="https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#human-in-the-loop">agentic systems</a>. Waiting for human input is a common HIL interaction pattern, allowing the agent to ask the user clarifying questions and await input before proceeding. </p>
+<p>We can implement this in LangGraph using the <a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-function&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-function-name&quot;&gt;interrupt&lt;/span&gt;" href="../../../reference/types/#langgraph.types.interrupt"><code>interrupt()</code></a> function. <code>interrupt</code> allows us to stop graph execution to collect input from a user and continue execution with collected input.</p>
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<p>First we need to install the packages required</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--quiet<span class="w"> </span>-U<span class="w"> </span>langgraph<span class="w"> </span>langchain_anthropic
+</span></code></pre></div>
+<p>Next, we need to set API keys for Anthropic and / or OpenAI (the LLM(s) we will use)</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">_set_env</span><span class="p">(</span><span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">: &quot;</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">_set_env</span><span class="p">(</span><span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition tip">
+    <p class="admonition-title">Set up <a href="https://smith.langchain.com">LangSmith</a> for LangGraph development</p>
+    <p style="padding-top: 5px;">
+        Sign up for LangSmith to quickly spot issues and improve the performance of your LangGraph projects. LangSmith lets you use trace data to debug, test, and monitor your LLM apps built with LangGraph — read more about how to get started <a href="https://docs.smith.langchain.com">here</a>. 
+    </p>
+</div>
+
+<h2 id="simple-usage">Simple Usage<a class="headerlink" href="#simple-usage" title="Permanent link">&para;</a></h2>
+<p>Let's explore a basic example of using human feedback. A straightforward approach is to create a node, <strong><code>human_feedback</code></strong>, designed specifically to collect user input. This allows us to gather feedback at a specific, chosen point in our graph.</p>
+<p>Steps:</p>
+<ol>
+<li><strong>Call <code>interrupt()</code></strong> inside the <strong><code>human_feedback</code></strong> node.  </li>
+<li><strong>Set up a <a href="https://langchain-ai.github.io/langgraph/concepts/low_level/#checkpointer">checkpointer</a></strong> to save the graph's state up to this node.  </li>
+<li><strong>Use <code>Command(resume=...)</code></strong> to provide the requested value to the <strong><code>human_feedback</code></strong> node and resume execution.</li>
+</ol>
+<p><sup><i>API Reference: <a href="https://langchain-ai.github.io/langgraph/reference/graphs/#langgraph.graph.state.StateGraph">StateGraph</a> | <a href="https://langchain-ai.github.io/langgraph/reference/constants/#langgraph.constants.START">START</a> | <a href="https://langchain-ai.github.io/langgraph/reference/constants/#langgraph.constants.END">END</a> | <a href="https://langchain-ai.github.io/langgraph/reference/types/#langgraph.types.Command">Command</a> | <a href="https://langchain-ai.github.io/langgraph/reference/types/#langgraph.types.interrupt">interrupt</a> | <a href="https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.memory.MemorySaver">MemorySaver</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypedDict</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateGraph</span><span class="p">,</span> <span class="n">START</span><span class="p">,</span> <span class="n">END</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">interrupt</span>
+</span></span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.checkpoint.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemorySaver</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="nb">input</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">user_feedback</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">step_1</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---Step 1---&quot;</span><span class="p">)</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="k">pass</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="k">def</span><span class="w"> </span><span class="nf">human_feedback</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---human_feedback---&quot;</span><span class="p">)</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="hll">    <span class="n">feedback</span> <span class="o">=</span> <span class="n">interrupt</span><span class="p">(</span><span class="s2">&quot;Please provide feedback:&quot;</span><span class="p">)</span>
+</span></span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_feedback&quot;</span><span class="p">:</span> <span class="n">feedback</span><span class="p">}</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="k">def</span><span class="w"> </span><span class="nf">step_3</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---Step 3---&quot;</span><span class="p">)</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>    <span class="k">pass</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="n">builder</span> <span class="o">=</span> <span class="n">StateGraph</span><span class="p">(</span><span class="n">State</span><span class="p">)</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;step_1&quot;</span><span class="p">,</span> <span class="n">step_1</span><span class="p">)</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;human_feedback&quot;</span><span class="p">,</span> <span class="n">human_feedback</span><span class="p">)</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;step_3&quot;</span><span class="p">,</span> <span class="n">step_3</span><span class="p">)</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">START</span><span class="p">,</span> <span class="s2">&quot;step_1&quot;</span><span class="p">)</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;step_1&quot;</span><span class="p">,</span> <span class="s2">&quot;human_feedback&quot;</span><span class="p">)</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;human_feedback&quot;</span><span class="p">,</span> <span class="s2">&quot;step_3&quot;</span><span class="p">)</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="n">builder</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;step_3&quot;</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="c1"># Set up memory</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="n">memory</span> <span class="o">=</span> <span class="n">MemorySaver</span><span class="p">()</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="c1"># Add</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="n">graph</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">checkpointer</span><span class="o">=</span><span class="n">memory</span><span class="p">)</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="c1"># View</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">get_graph</span><span class="p">()</span><span class="o">.</span><span class="n">draw_mermaid_png</span><span class="p">()))</span>
+</span></code></pre></div>
+<p>
+<img src="data:image/png;base64,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" />
+</p>
+
+<p>Run until our <code>interrupt()</code> at <code>human_feedback</code>:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Input</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">initial_input</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="s2">&quot;hello world&quot;</span><span class="p">}</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Thread</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">thread</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;configurable&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Run the graph until the first interruption</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">initial_input</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;updates&quot;</span><span class="p">):</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">---Step 1---</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">{&#39;step_1&#39;: None}</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="go">---human_feedback---</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="go">{&#39;__interrupt__&#39;: (Interrupt(value=&#39;Please provide feedback:&#39;, resumable=True, ns=[&#39;human_feedback:c723d73a-d2cb-32cf-452f-e147367868bd&#39;]),)}</span>
+</span></code></pre></div>
+Now, we can manually update our graph state with the user input:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Continue the graph execution</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="hll">    <span class="n">Command</span><span class="p">(</span><span class="n">resume</span><span class="o">=</span><span class="s2">&quot;go to step 3!&quot;</span><span class="p">),</span>
+</span></span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">thread</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;updates&quot;</span><span class="p">,</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">):</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="go">---human_feedback---</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="go">{&#39;human_feedback&#39;: {&#39;user_feedback&#39;: &#39;go to step 3!&#39;}}</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="go">---Step 3---</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="go">{&#39;step_3&#39;: None}</span>
+</span></code></pre></div>
+We can see our feedback was added to state - </p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">graph</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="n">thread</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="go">{&#39;input&#39;: &#39;hello world&#39;, &#39;user_feedback&#39;: &#39;go to step 3!&#39;}</span>
+</span></code></pre></div>
+<h2 id="agent">Agent<a class="headerlink" href="#agent" title="Permanent link">&para;</a></h2>
+<p>In the context of <a href="../../../concepts/agentic_concepts">agents</a>, waiting for user feedback is especially useful for asking clarifying questions. To illustrate this, we’ll create a simple <a href="../../../concepts/agentic_concepts#react-implementation">ReAct-style agent</a> capable of <a href="https://python.langchain.com/docs/concepts/tool_calling/">tool calling</a>. </p>
+<p>For this example, we’ll use Anthropic's chat model along with a <strong>mock tool</strong> (purely for demonstration purposes).</p>
+<div class="admonition note">
+    <p class="admonition-title">Using Pydantic with LangChain</p>
+    <p>
+        This notebook uses Pydantic v2 <code>BaseModel</code>, which requires <code>langchain-core >= 0.3</code>. Using <code>langchain-core < 0.3</code> will result in errors due to mixing of Pydantic v1 and v2 <code>BaseModels</code>.
+    </p>
+</div>
+
+<p><sup><i>API Reference: <a href="https://langchain-ai.github.io/langgraph/reference/constants/#langgraph.constants.START">START</a> | <a href="https://python.langchain.com/api_reference/core/tools/langchain_core.tools.convert.tool.html">tool</a> | <a href="https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.tool_node.ToolNode">ToolNode</a> | <a href="https://langchain-ai.github.io/langgraph/reference/constants/#langgraph.constants.END">END</a> | <a href="https://langchain-ai.github.io/langgraph/reference/graphs/#langgraph.graph.state.StateGraph">StateGraph</a> | <a href="https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.memory.MemorySaver">MemorySaver</a></i></sup></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Set up the state</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessagesState</span><span class="p">,</span> <span class="n">START</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Set up the tool</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># We will have one real tool - a search tool</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># We&#39;ll also have one &quot;fake&quot; tool - a &quot;ask_human&quot; tool</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Here we define any ACTUAL tools</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.prebuilt</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolNode</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="nd">@tool</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Call to surf the web.&quot;&quot;&quot;</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="c1"># This is a placeholder for the actual implementation</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>    <span class="c1"># Don&#39;t let the LLM know this though 😊</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;I looked up: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">. Result: It&#39;s sunny in San Francisco, but you better look out if you&#39;re a Gemini 😈.&quot;</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="n">tools</span> <span class="o">=</span> <span class="p">[</span><span class="n">search</span><span class="p">]</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="n">tool_node</span> <span class="o">=</span> <span class="n">ToolNode</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="c1"># Set up the model</span>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_anthropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatAnthropic</span>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="n">model</span> <span class="o">=</span> <span class="n">ChatAnthropic</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet-latest&quot;</span><span class="p">)</span>
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>
+</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a>
+</span><span id="__span-9-30"><a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>
+</span><span id="__span-9-31"><a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="c1"># We are going &quot;bind&quot; all tools to the model</span>
+</span><span id="__span-9-32"><a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="c1"># We have the ACTUAL tools from above, but we also need a mock tool to ask a human</span>
+</span><span id="__span-9-33"><a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="c1"># Since `bind_tools` takes in tools but also just tool definitions,</span>
+</span><span id="__span-9-34"><a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="c1"># We can define a tool definition for `ask_human`</span>
+</span><span id="__span-9-35"><a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="k">class</span><span class="w"> </span><span class="nc">AskHuman</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="__span-9-36"><a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Ask the human a question&quot;&quot;&quot;</span>
+</span><span id="__span-9-37"><a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a>
+</span><span id="__span-9-38"><a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a>    <span class="n">question</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-9-39"><a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a>
+</span><span id="__span-9-40"><a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a>
+</span><span id="__span-9-41"><a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">bind_tools</span><span class="p">(</span><span class="n">tools</span> <span class="o">+</span> <span class="p">[</span><span class="n">AskHuman</span><span class="p">])</span>
+</span><span id="__span-9-42"><a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a>
+</span><span id="__span-9-43"><a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="c1"># Define nodes and conditional edges</span>
+</span><span id="__span-9-44"><a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a>
+</span><span id="__span-9-45"><a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a>
+</span><span id="__span-9-46"><a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="c1"># Define the function that determines whether to continue or not</span>
+</span><span id="__span-9-47"><a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="k">def</span><span class="w"> </span><span class="nf">should_continue</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-9-48"><a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a>    <span class="n">messages</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-9-49"><a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a>    <span class="n">last_message</span> <span class="o">=</span> <span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-9-50"><a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a>    <span class="c1"># If there is no function call, then we finish</span>
+</span><span id="__span-9-51"><a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">last_message</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">:</span>
+</span><span id="__span-9-52"><a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a>        <span class="k">return</span> <span class="n">END</span>
+</span><span id="__span-9-53"><a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a>    <span class="c1"># If tool call is asking Human, we return that node</span>
+</span><span id="__span-9-54"><a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a>    <span class="c1"># You could also add logic here to let some system know that there&#39;s something that requires Human input</span>
+</span><span id="__span-9-55"><a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a>    <span class="c1"># For example, send a slack message, etc</span>
+</span><span id="__span-9-56"><a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a>    <span class="k">elif</span> <span class="n">last_message</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;AskHuman&quot;</span><span class="p">:</span>
+</span><span id="__span-9-57"><a id="__codelineno-9-57" name="__codelineno-9-57" href="#__codelineno-9-57"></a>        <span class="k">return</span> <span class="s2">&quot;ask_human&quot;</span>
+</span><span id="__span-9-58"><a id="__codelineno-9-58" name="__codelineno-9-58" href="#__codelineno-9-58"></a>    <span class="c1"># Otherwise if there is, we continue</span>
+</span><span id="__span-9-59"><a id="__codelineno-9-59" name="__codelineno-9-59" href="#__codelineno-9-59"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-9-60"><a id="__codelineno-9-60" name="__codelineno-9-60" href="#__codelineno-9-60"></a>        <span class="k">return</span> <span class="s2">&quot;action&quot;</span>
+</span><span id="__span-9-61"><a id="__codelineno-9-61" name="__codelineno-9-61" href="#__codelineno-9-61"></a>
+</span><span id="__span-9-62"><a id="__codelineno-9-62" name="__codelineno-9-62" href="#__codelineno-9-62"></a>
+</span><span id="__span-9-63"><a id="__codelineno-9-63" name="__codelineno-9-63" href="#__codelineno-9-63"></a><span class="c1"># Define the function that calls the model</span>
+</span><span id="__span-9-64"><a id="__codelineno-9-64" name="__codelineno-9-64" href="#__codelineno-9-64"></a><span class="k">def</span><span class="w"> </span><span class="nf">call_model</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-9-65"><a id="__codelineno-9-65" name="__codelineno-9-65" href="#__codelineno-9-65"></a>    <span class="n">messages</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+</span><span id="__span-9-66"><a id="__codelineno-9-66" name="__codelineno-9-66" href="#__codelineno-9-66"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+</span><span id="__span-9-67"><a id="__codelineno-9-67" name="__codelineno-9-67" href="#__codelineno-9-67"></a>    <span class="c1"># We return a list, because this will get added to the existing list</span>
+</span><span id="__span-9-68"><a id="__codelineno-9-68" name="__codelineno-9-68" href="#__codelineno-9-68"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>
+</span><span id="__span-9-69"><a id="__codelineno-9-69" name="__codelineno-9-69" href="#__codelineno-9-69"></a>
+</span><span id="__span-9-70"><a id="__codelineno-9-70" name="__codelineno-9-70" href="#__codelineno-9-70"></a>
+</span><span id="__span-9-71"><a id="__codelineno-9-71" name="__codelineno-9-71" href="#__codelineno-9-71"></a><span class="c1"># We define a fake node to ask the human</span>
+</span><span id="__span-9-72"><a id="__codelineno-9-72" name="__codelineno-9-72" href="#__codelineno-9-72"></a><span class="k">def</span><span class="w"> </span><span class="nf">ask_human</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span id="__span-9-73"><a id="__codelineno-9-73" name="__codelineno-9-73" href="#__codelineno-9-73"></a>    <span class="n">tool_call_id</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+</span><span id="__span-9-74"><a id="__codelineno-9-74" name="__codelineno-9-74" href="#__codelineno-9-74"></a>    <span class="n">ask</span> <span class="o">=</span> <span class="n">AskHuman</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">])</span>
+</span><span id="__span-9-75"><a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a><span class="hll">    <span class="n">location</span> <span class="o">=</span> <span class="n">interrupt</span><span class="p">(</span><span class="n">ask</span><span class="o">.</span><span class="n">question</span><span class="p">)</span>
+</span></span><span id="__span-9-76"><a id="__codelineno-9-76" name="__codelineno-9-76" href="#__codelineno-9-76"></a>    <span class="n">tool_message</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;tool_call_id&quot;</span><span class="p">:</span> <span class="n">tool_call_id</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;tool&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">location</span><span class="p">}]</span>
+</span><span id="__span-9-77"><a id="__codelineno-9-77" name="__codelineno-9-77" href="#__codelineno-9-77"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="n">tool_message</span><span class="p">}</span>
+</span><span id="__span-9-78"><a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a>
+</span><span id="__span-9-79"><a id="__codelineno-9-79" name="__codelineno-9-79" href="#__codelineno-9-79"></a>
+</span><span id="__span-9-80"><a id="__codelineno-9-80" name="__codelineno-9-80" href="#__codelineno-9-80"></a><span class="c1"># Build the graph</span>
+</span><span id="__span-9-81"><a id="__codelineno-9-81" name="__codelineno-9-81" href="#__codelineno-9-81"></a>
+</span><span id="__span-9-82"><a id="__codelineno-9-82" name="__codelineno-9-82" href="#__codelineno-9-82"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">END</span><span class="p">,</span> <span class="n">StateGraph</span>
+</span><span id="__span-9-83"><a id="__codelineno-9-83" name="__codelineno-9-83" href="#__codelineno-9-83"></a>
+</span><span id="__span-9-84"><a id="__codelineno-9-84" name="__codelineno-9-84" href="#__codelineno-9-84"></a><span class="c1"># Define a new graph</span>
+</span><span id="__span-9-85"><a id="__codelineno-9-85" name="__codelineno-9-85" href="#__codelineno-9-85"></a><span class="n">workflow</span> <span class="o">=</span> <span class="n">StateGraph</span><span class="p">(</span><span class="n">MessagesState</span><span class="p">)</span>
+</span><span id="__span-9-86"><a id="__codelineno-9-86" name="__codelineno-9-86" href="#__codelineno-9-86"></a>
+</span><span id="__span-9-87"><a id="__codelineno-9-87" name="__codelineno-9-87" href="#__codelineno-9-87"></a><span class="c1"># Define the three nodes we will cycle between</span>
+</span><span id="__span-9-88"><a id="__codelineno-9-88" name="__codelineno-9-88" href="#__codelineno-9-88"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;agent&quot;</span><span class="p">,</span> <span class="n">call_model</span><span class="p">)</span>
+</span><span id="__span-9-89"><a id="__codelineno-9-89" name="__codelineno-9-89" href="#__codelineno-9-89"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="n">tool_node</span><span class="p">)</span>
+</span><span id="__span-9-90"><a id="__codelineno-9-90" name="__codelineno-9-90" href="#__codelineno-9-90"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;ask_human&quot;</span><span class="p">,</span> <span class="n">ask_human</span><span class="p">)</span>
+</span><span id="__span-9-91"><a id="__codelineno-9-91" name="__codelineno-9-91" href="#__codelineno-9-91"></a>
+</span><span id="__span-9-92"><a id="__codelineno-9-92" name="__codelineno-9-92" href="#__codelineno-9-92"></a><span class="c1"># Set the entrypoint as `agent`</span>
+</span><span id="__span-9-93"><a id="__codelineno-9-93" name="__codelineno-9-93" href="#__codelineno-9-93"></a><span class="c1"># This means that this node is the first one called</span>
+</span><span id="__span-9-94"><a id="__codelineno-9-94" name="__codelineno-9-94" href="#__codelineno-9-94"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">START</span><span class="p">,</span> <span class="s2">&quot;agent&quot;</span><span class="p">)</span>
+</span><span id="__span-9-95"><a id="__codelineno-9-95" name="__codelineno-9-95" href="#__codelineno-9-95"></a>
+</span><span id="__span-9-96"><a id="__codelineno-9-96" name="__codelineno-9-96" href="#__codelineno-9-96"></a><span class="c1"># We now add a conditional edge</span>
+</span><span id="__span-9-97"><a id="__codelineno-9-97" name="__codelineno-9-97" href="#__codelineno-9-97"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_conditional_edges</span><span class="p">(</span>
+</span><span id="__span-9-98"><a id="__codelineno-9-98" name="__codelineno-9-98" href="#__codelineno-9-98"></a>    <span class="c1"># First, we define the start node. We use `agent`.</span>
+</span><span id="__span-9-99"><a id="__codelineno-9-99" name="__codelineno-9-99" href="#__codelineno-9-99"></a>    <span class="c1"># This means these are the edges taken after the `agent` node is called.</span>
+</span><span id="__span-9-100"><a id="__codelineno-9-100" name="__codelineno-9-100" href="#__codelineno-9-100"></a>    <span class="s2">&quot;agent&quot;</span><span class="p">,</span>
+</span><span id="__span-9-101"><a id="__codelineno-9-101" name="__codelineno-9-101" href="#__codelineno-9-101"></a>    <span class="c1"># Next, we pass in the function that will determine which node is called next.</span>
+</span><span id="__span-9-102"><a id="__codelineno-9-102" name="__codelineno-9-102" href="#__codelineno-9-102"></a>    <span class="n">should_continue</span><span class="p">,</span>
+</span><span id="__span-9-103"><a id="__codelineno-9-103" name="__codelineno-9-103" href="#__codelineno-9-103"></a>    <span class="n">path_map</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ask_human&quot;</span><span class="p">,</span> <span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="n">END</span><span class="p">],</span>
+</span><span id="__span-9-104"><a id="__codelineno-9-104" name="__codelineno-9-104" href="#__codelineno-9-104"></a><span class="p">)</span>
+</span><span id="__span-9-105"><a id="__codelineno-9-105" name="__codelineno-9-105" href="#__codelineno-9-105"></a>
+</span><span id="__span-9-106"><a id="__codelineno-9-106" name="__codelineno-9-106" href="#__codelineno-9-106"></a><span class="c1"># We now add a normal edge from `tools` to `agent`.</span>
+</span><span id="__span-9-107"><a id="__codelineno-9-107" name="__codelineno-9-107" href="#__codelineno-9-107"></a><span class="c1"># This means that after `tools` is called, `agent` node is called next.</span>
+</span><span id="__span-9-108"><a id="__codelineno-9-108" name="__codelineno-9-108" href="#__codelineno-9-108"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;agent&quot;</span><span class="p">)</span>
+</span><span id="__span-9-109"><a id="__codelineno-9-109" name="__codelineno-9-109" href="#__codelineno-9-109"></a>
+</span><span id="__span-9-110"><a id="__codelineno-9-110" name="__codelineno-9-110" href="#__codelineno-9-110"></a><span class="c1"># After we get back the human response, we go back to the agent</span>
+</span><span id="__span-9-111"><a id="__codelineno-9-111" name="__codelineno-9-111" href="#__codelineno-9-111"></a><span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;ask_human&quot;</span><span class="p">,</span> <span class="s2">&quot;agent&quot;</span><span class="p">)</span>
+</span><span id="__span-9-112"><a id="__codelineno-9-112" name="__codelineno-9-112" href="#__codelineno-9-112"></a>
+</span><span id="__span-9-113"><a id="__codelineno-9-113" name="__codelineno-9-113" href="#__codelineno-9-113"></a><span class="c1"># Set up memory</span>
+</span><span id="__span-9-114"><a id="__codelineno-9-114" name="__codelineno-9-114" href="#__codelineno-9-114"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.checkpoint.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemorySaver</span>
+</span><span id="__span-9-115"><a id="__codelineno-9-115" name="__codelineno-9-115" href="#__codelineno-9-115"></a>
+</span><span id="__span-9-116"><a id="__codelineno-9-116" name="__codelineno-9-116" href="#__codelineno-9-116"></a><span class="n">memory</span> <span class="o">=</span> <span class="n">MemorySaver</span><span class="p">()</span>
+</span><span id="__span-9-117"><a id="__codelineno-9-117" name="__codelineno-9-117" href="#__codelineno-9-117"></a>
+</span><span id="__span-9-118"><a id="__codelineno-9-118" name="__codelineno-9-118" href="#__codelineno-9-118"></a><span class="c1"># Finally, we compile it!</span>
+</span><span id="__span-9-119"><a id="__codelineno-9-119" name="__codelineno-9-119" href="#__codelineno-9-119"></a><span class="c1"># This compiles it into a LangChain Runnable,</span>
+</span><span id="__span-9-120"><a id="__codelineno-9-120" name="__codelineno-9-120" href="#__codelineno-9-120"></a><span class="c1"># meaning you can use it as you would any other runnable</span>
+</span><span id="__span-9-121"><a id="__codelineno-9-121" name="__codelineno-9-121" href="#__codelineno-9-121"></a><span class="n">app</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">checkpointer</span><span class="o">=</span><span class="n">memory</span><span class="p">)</span>
+</span><span id="__span-9-122"><a id="__codelineno-9-122" name="__codelineno-9-122" href="#__codelineno-9-122"></a>
+</span><span id="__span-9-123"><a id="__codelineno-9-123" name="__codelineno-9-123" href="#__codelineno-9-123"></a><span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">get_graph</span><span class="p">()</span><span class="o">.</span><span class="n">draw_mermaid_png</span><span class="p">()))</span>
+</span></code></pre></div>
+<p>
+<img src="data:image/png;base64,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" />
+</p>
+
+<h2 id="interacting-with-the-agent">Interacting with the Agent<a class="headerlink" href="#interacting-with-the-agent" title="Permanent link">&para;</a></h2>
+<p>We can now interact with the agent. Let's ask it to ask the user where they are, then tell them the weather. </p>
+<p>This should make it use the <code>ask_human</code> tool first, then use the normal tool.</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;configurable&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">}}</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="p">{</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>        <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>            <span class="p">(</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>                <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>                <span class="s2">&quot;Ask the user where they are, then look up the weather there&quot;</span><span class="p">,</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>            <span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>        <span class="p">]</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="p">},</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">config</span><span class="p">,</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">,</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="p">):</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>    <span class="k">if</span> <span class="s2">&quot;messages&quot;</span> <span class="ow">in</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pretty_print</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="go">================================ Human Message =================================</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">Ask the user where they are, then look up the weather there</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="go">[{&#39;text&#39;: &quot;I&#39;ll help you with that. Let me first ask the user about their location.&quot;, &#39;type&#39;: &#39;text&#39;}, {&#39;id&#39;: &#39;toolu_012Z9yyZjvH8xKgMShgwpQZ9&#39;, &#39;input&#39;: {&#39;question&#39;: &#39;Where are you located?&#39;}, &#39;name&#39;: &#39;AskHuman&#39;, &#39;type&#39;: &#39;tool_use&#39;}]</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="go">  AskHuman (toolu_012Z9yyZjvH8xKgMShgwpQZ9)</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="go"> Call ID: toolu_012Z9yyZjvH8xKgMShgwpQZ9</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="go">  Args:</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="go">    question: Where are you located?</span>
+</span></code></pre></div></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">app</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="o">.</span><span class="n">next</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="go">(&#39;ask_human&#39;,)</span>
+</span></code></pre></div>
+<p>You can see that our graph got interrupted inside the <code>ask_human</code> node, which is now waiting for a <code>location</code> to be provided. We can provide this value by invoking the graph with a <code>Command(resume="&lt;location&gt;")</code> input:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="hll">    <span class="n">Command</span><span class="p">(</span><span class="n">resume</span><span class="o">=</span><span class="s2">&quot;san francisco&quot;</span><span class="p">),</span>
+</span></span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">config</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">stream_mode</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="p">):</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="k">if</span> <span class="s2">&quot;messages&quot;</span> <span class="ow">in</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pretty_print</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="language-output highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="go">[{&#39;text&#39;: &quot;I&#39;ll help you with that. Let me first ask the user about their location.&quot;, &#39;type&#39;: &#39;text&#39;}, {&#39;id&#39;: &#39;toolu_012Z9yyZjvH8xKgMShgwpQZ9&#39;, &#39;input&#39;: {&#39;question&#39;: &#39;Where are you located?&#39;}, &#39;name&#39;: &#39;AskHuman&#39;, &#39;type&#39;: &#39;tool_use&#39;}]</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="go">  AskHuman (toolu_012Z9yyZjvH8xKgMShgwpQZ9)</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="go"> Call ID: toolu_012Z9yyZjvH8xKgMShgwpQZ9</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="go">  Args:</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="go">    question: Where are you located?</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="go">san francisco</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="go">[{&#39;text&#39;: &quot;Now I&#39;ll search for the weather in San Francisco.&quot;, &#39;type&#39;: &#39;text&#39;}, {&#39;id&#39;: &#39;toolu_01QrWBCDouvBuJPZa4veepLw&#39;, &#39;input&#39;: {&#39;query&#39;: &#39;current weather in san francisco&#39;}, &#39;name&#39;: &#39;search&#39;, &#39;type&#39;: &#39;tool_use&#39;}]</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="go">Tool Calls:</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="go">  search (toolu_01QrWBCDouvBuJPZa4veepLw)</span>
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="go"> Call ID: toolu_01QrWBCDouvBuJPZa4veepLw</span>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="go">  Args:</span>
+</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="go">    query: current weather in san francisco</span>
+</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="go">================================= Tool Message =================================</span>
+</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="go">Name: search</span>
+</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>
+</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="go">I looked up: current weather in san francisco. Result: It&#39;s sunny in San Francisco, but you better look out if you&#39;re a Gemini 😈.</span>
+</span><span id="__span-15-24"><a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a><span class="go">================================== Ai Message ==================================</span>
+</span><span id="__span-15-25"><a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a>
+</span><span id="__span-15-26"><a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="go">Based on the search results, it&#39;s currently sunny in San Francisco. Would you like more specific weather details?</span>
+</span></code></pre></div></p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Please help us improve this page by adding to the discussion below.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 LangChain, Inc | <a href="#__consent">Consent Preferences</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://langchain-ai.github.io/langgraphjs/" target="_blank" rel="noopener" title="langchain-ai.github.io" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M0 32v448h448V32zm243.8 349.4c0 43.6-25.6 63.5-62.9 63.5-33.7 0-53.2-17.4-63.2-38.5l34.3-20.7c6.6 11.7 12.6 21.6 27.1 21.6 13.8 0 22.6-5.4 22.6-26.5V237.7h42.1zm99.6 63.5c-39.1 0-64.4-18.6-76.7-43l34.3-19.8c9 14.7 20.8 25.6 41.5 25.6 17.4 0 28.6-8.7 28.6-20.8 0-14.4-11.4-19.5-30.7-28l-10.5-4.5c-30.4-12.9-50.5-29.2-50.5-63.5 0-31.6 24.1-55.6 61.6-55.6 26.8 0 46 9.3 59.8 33.7L368 290c-7.2-12.9-15-18-27.1-18-12.3 0-20.1 7.8-20.1 18 0 12.6 7.8 17.7 25.9 25.6l10.5 4.5c35.8 15.3 55.9 31 55.9 66.2 0 37.8-29.8 58.6-69.7 58.6"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/LangChainAI" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+
+  
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. <strong>Clicking "Accept" makes our documentation better. Thank you!</strong> ❤️</p>
+<input class="md-toggle" type="checkbox" id="__settings" checked>
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" checked>
+      <span class="task-list-indicator"></span>
+      Google Analytics
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">Reject</button>
+    
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["announce.dismiss", "content.code.annotate", "content.code.copy", "content.code.select", "content.tabs.link", "content.action.edit", "content.tooltips", "navigation.indexes", "navigation.footer", "navigation.instant", "navigation.sections", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.tabs", "navigation.top", "navigation.prune", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>
